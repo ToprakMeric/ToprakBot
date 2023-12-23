@@ -33,9 +33,9 @@ public class ToprakBot {
 		}
 		return titles;
 	}
-	public static async Task Main(string args) {
+	public static async Task Main(string[] args) {
 		bool manual = false; //Sayfa listesini false ise API'den, true ise elle eklenmiş dosyadan alır
-		bool makine = true; //Nerede çalışlacağına göre dosya konumlarını ayarlar, true ise makinede false ise pc de
+		bool makine = false; //Nerede çalışlacağına göre dosya konumlarını ayarlar, true ise makinede false ise pc de
 
 		ApiEdit editor = new ApiEdit("https://tr.wikipedia.org/w/");
 
