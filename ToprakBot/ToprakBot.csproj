@@ -52,7 +52,7 @@
     <Compile Include="GorunmezKarakter.cs" />
     <Compile Include="Kaynakca.cs" />
     <Compile Include="KaynakCevir.cs" />
-    <Compile Include="KaynakNoktalama.cs" />
+    <Compile Include="NotListesi.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Upright.cs" />

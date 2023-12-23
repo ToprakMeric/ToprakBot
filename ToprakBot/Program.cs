@@ -13,28 +13,8 @@ using Newtonsoft.Json.Linq;
 using System.Net.Http;
 
 public class ToprakBot {
-	static async Task<List<string>> TitleList() {
-		List<string> titles = new List<string>();
-
-		for(int i = 0;i<30;i++) {
-			string apiUrl = "https://tr.wikipedia.org/w/api.php?action=query&formatversion=2&list=recentchanges&rcdir=older&rcend="+DateTime.Now.AddDays(-i-1).ToString("yyyy-MM-dd")+"T00:00:00.000Z&rclimit=max&rcnamespace=0&rcprop=title&rcstart="+DateTime.Now.AddDays(-i).ToString("yyyy-MM-dd")+"T00:00:00.000Z&rctype=new&format=json";
-
-			using(HttpClient client = new HttpClient()) {
-				string json = await client.GetStringAsync(apiUrl);
-
-				var jsonObject = JsonConvert.DeserializeObject<JObject>(json);
-				var recentChanges = jsonObject["query"]["recentchanges"];
-
-				foreach(var change in recentChanges) {
-					string title = change["title"].ToString();
-					titles.Add(title);
-				}
-			}
-		}
-		return titles;
-	}
 	public static async Task Main(string[] args) {
-		bool manual = false; //Sayfa listesini false ise API'den, true ise elle eklenmiş dosyadan alır
+		bool manual = true; //Sayfa listesini false ise API'den, true ise elle eklenmiş dosyadan alır
 		bool makine = false; //Nerede çalışlacağına göre dosya konumlarını ayarlar, true ise makinede false ise pc de
 
 		ApiEdit editor = new ApiEdit("https://tr.wikipedia.org/w/");
@@ -72,22 +52,26 @@ public class ToprakBot {
 
 		var loglist = new List<string>();
 
+		var türlü = new ToprakBot();
 		int i = -1;
 		foreach(string sayfa in titles) {
 			i++;
-			string ArticleText = editor.Open(sayfa); //içeriği alıyor
-			string madde = ArticleText;
-			string ekozet = "";
+			string ArticleText = "", madde = "", ekozet = "";
+			int NameSpace = türlü.NameSpaceDedector(sayfa);
+			if(NameSpace == 0) { //Sadece ana ad alanı, diğer ad alanı kodları için bkz VP:İA
+				ArticleText = editor.Open(sayfa); //içeriği alıyor
+				madde = ArticleText;
 
-			Regex degistirmemeli = new Regex(@"\{\{\s*?(sil|çalışma|bekletmeli sil)\s*?(\||\}\})", RegexOptions.IgnoreCase);
-			if(!degistirmemeli.Match(ArticleText).Success) {
-				var tuple = Edit(ArticleText, sayfa);
-				ArticleText=tuple.Item1;
-				ekozet=tuple.Item2;
-
+				Regex degistirmemeli = new Regex(@"\{\{\s*?(sil|çalışma|bekletmeli sil)\s*?(\||\}\})", RegexOptions.IgnoreCase);
+				if(!degistirmemeli.Match(ArticleText).Success) {
+					var tuple = Edit(ArticleText, sayfa);
+					ArticleText=tuple.Item1;
+					ekozet=tuple.Item2;
+				}
 			}
-
-			if(ArticleText==madde) Console.ForegroundColor=ConsoleColor.Red;
+			
+			if(NameSpace != 0) Console.ForegroundColor=ConsoleColor.Yellow;
+			else if(ArticleText==madde) Console.ForegroundColor=ConsoleColor.Red;
 			else {
 				string summary = "Düzenlemeler ve imla"+ekozet;
 				Console.ForegroundColor=ConsoleColor.Green;
@@ -104,6 +88,23 @@ public class ToprakBot {
 		await Task.Delay(TimeSpan.FromSeconds(1));
 	}
 
+	static async Task<List<string>> TitleList() {
+        List<string> titles = new List<string>();
+        for(int i = 0;i<30;i++) {
+            string apiUrl = "https://tr.wikipedia.org/w/api.php?action=query&formatversion=2&list=recentchanges&rcdir=older&rcend="+DateTime.Now.AddDays(-i-1).ToString("yyyy-MM-dd")+"T00:00:00.000Z&rclimit=max&rcnamespace=0&rcprop=title&rcstart="+DateTime.Now.AddDays(-i).ToString("yyyy-MM-dd")+"T00:00:00.000Z&rctype=new&format=json";
+            using(HttpClient client = new HttpClient()) {
+                string json = await client.GetStringAsync(apiUrl);
+                var jsonObject = JsonConvert.DeserializeObject<JObject>(json);
+                var recentChanges = jsonObject["query"]["recentchanges"];
+                foreach(var change in recentChanges) {
+                    string title = change["title"].ToString();
+                    titles.Add(title);
+                }
+            }
+        }
+        return titles;
+    }
+
 	static public Tuple<string, string> Edit(string ArticleText, string ArticleTitle) {
 		string summary = "";
 
@@ -112,6 +113,10 @@ public class ToprakBot {
 		var tuple = Kaynakca.Main(ArticleText);
 		ArticleText=tuple.Item1;
 		summary+=tuple.Item2;
+
+		var tuple4 = NotListesi.Main(ArticleText);
+		ArticleText=tuple4.Item1;
+		summary+=tuple4.Item2;
 
 		ArticleText=KaynakCevir.Main(ArticleText);
 
@@ -122,8 +127,6 @@ public class ToprakBot {
 		var tuple3 = GorunmezKarakter.Main(ArticleText, ArticleTitle);
 		ArticleText=tuple3.Item1;
 		summary+=tuple3.Item2;
-
-		//ArticleText = KaynakNoktalama.Main(ArticleText);
 
 		Regex regex1 = new Regex(@"(\[\[\s*?)([Iıİi]mage|[Ff]ile)(\s*?\:)");
 		if(regex1.Match(ArticleText).Success) ArticleText=regex1.Replace(ArticleText, "$1Dosya$3");
@@ -191,4 +194,77 @@ public class ToprakBot {
 
 		return new Tuple<string, string>(ArticleText, summary);
 	}
+
+	    public int NameSpaceDedector(string ArticleTitle) {
+		Regex colon = new Regex(@"^(.*?)\:");
+		if (colon.Match(ArticleTitle).Success) {
+			var aracı = colon.Match(ArticleTitle);
+			string alan = aracı.Groups[1].Value;
+			switch(alan) {
+				case "Ortam":
+					return -2;
+				case "Özel":
+					return -1;
+				case "Tartışma":
+					return 1;
+				case "Kullanıcı":
+					return 2;
+				case "Kullanıcı mesaj":
+					return 3;
+				case "Vikipedi":
+					return 4;
+				case "Vikipedi tartışma":
+					return 5;
+				case "Dosya":
+				case "Resim":
+					return 6;
+				case "Dosya tartışma":
+					return 7;
+				case "MediaWiki":
+					return 8;
+				case "MediaWiki tartışma":
+					return 9;
+				case "Şablon":
+					return 10;
+				case "Şablon tartışma":
+					return 11;
+				case "Yardım":
+					return 12;
+				case "Yardım tartışma":
+					return 13;
+				case "Kategori":
+					return 14;
+				case "Kategori tartışma":
+					return 15;
+				case "Portal":
+					return 100;
+				case "Portal tartışma":
+					return 101;
+				case "Vikiproje":
+					return 102;
+				case "Vikiproje tartışma":
+					return 103;
+				case "TimedText":
+					return 710;
+				case "TimedText talk":
+					return 711;
+				case "Modül":
+					return 828;
+				case "Modül tartışma":
+					return 829;
+				case "Gadget":
+					return 2300;
+				case "Gadget talk":
+					return 2301;
+				case "Gadget definition":
+					return 2302;
+				case "Gadget definition talk":
+					return 2303;
+				default:
+					return 0;
+			}
+
+		}
+        return 0;
+    }
 }
