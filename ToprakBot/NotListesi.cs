@@ -11,7 +11,7 @@ public class NotListesi {
 		Regex refgroup = new Regex(@"(\<|{{)\s*?(references|ref|kaynakça)\s*?\|?(group|grup)", RegexOptions.IgnoreCase);
 	
 		if (şablon.Match(ArticleText).Success) {
-			if (!(notlistesi.Match(ArticleText).Success)&&!(refgroup.Match(ArticleText).Success)&&!(notbaslik.Match(ArticleText).Success)) {
+			if (!notlistesi.Match(ArticleText).Success&&!refgroup.Match(ArticleText).Success&&!notbaslik.Match(ArticleText).Success) {
 			
 				Match kategori = Regex.Match(ArticleText, @"\[\[\s*?[kc]ategor[iy]\s*?\:", RegexOptions.IgnoreCase);
 				Match dışbağ = Regex.Match(ArticleText, @"\=\=\s*?Dış\sbağlantılar\s*?\=\=", RegexOptions.IgnoreCase);

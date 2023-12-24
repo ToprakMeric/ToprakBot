@@ -60,29 +60,29 @@ public class Upright {
 					string file = aracı2.Groups[2].Value;
 
 					if((px1==px2)&&(px1!=""||px2!="")) {
-						piksel=px1;
+						piksel = px1;
 						float oran = FileRatio(file).Result;
 						if(oran<1) {
 							float ara = oran*float.Parse(piksel);
-							piksel=ara.ToString();
-						} else piksel=px1;
+							piksel = ara.ToString();
+						} else piksel = px1;
 					} else if((px1=="")&&(px2!="")) {
-						piksel=px2;
+						piksel = px2;
 						float oran = FileRatio(file).Result;
 						float ara = oran*float.Parse(piksel);
-						piksel=ara.ToString();
-					} else piksel=px1;
+						piksel = ara.ToString();
+					} else piksel = px1;
 				}
 
 				if(float.TryParse(piksel, out float upright)) {
-					upright=(float)Math.Round(upright/220, 2);
+					upright = (float)Math.Round(upright/220, 2);
 					string uprightStr = upright.ToString();
-					uprightStr=uprightStr.Replace(",", ".");
+					uprightStr = uprightStr.Replace(",", ".");
 
 					Regex sıfıryokedici = new Regex(@"(\d)(\.00|(\.\d)0)");
 					if(sıfıryokedici.Match(uprightStr).Success) uprightStr=sıfıryokedici.Replace(uprightStr, "$1$3");
 
-					DosyaMetin=pikrgx.Replace(DosyaMetin, "|upright="+uprightStr);
+					DosyaMetin = pikrgx.Replace(DosyaMetin, "|upright="+uprightStr);
 
 					return DosyaMetin;
 				} else return match.Value;
