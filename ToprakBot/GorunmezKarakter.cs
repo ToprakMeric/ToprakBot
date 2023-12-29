@@ -27,22 +27,30 @@ public class GorunmezKarakter {
 			}
 		}
 
+		bool kirilmaz = false;
 		Regex luzumsuz1 = new Regex(@"\u00a0\r(\n*)");
 		if(luzumsuz1.Match(ArticleText).Success) { //Satır sonunda kırılmaz boşluk
 			ArticleText=luzumsuz1.Replace(ArticleText, "$1");
 			gereksiz.Add("[[Ayrılmaz alan|kırılmaz boşluk]] (U+00A0)");
+			kirilmaz = true;
 		}
 
 		Regex luzumsuz2 = new Regex(@"\r(\n*)\u00a0");
 		if(luzumsuz2.Match(ArticleText).Success) { //Satır başında kırılmaz boşluk
 			ArticleText = luzumsuz2.Replace(ArticleText, "$1");
-			gereksiz.Add("[[Ayrılmaz alan|kırılmaz boşluk]] (U+00A0)");
+			if(!kirilmaz) {
+				gereksiz.Add("[[Ayrılmaz alan|kırılmaz boşluk]] (U+00A0)");
+				kirilmaz = true;	
+			}
 		}
 
 		Regex luzumsuz3 = new Regex(@"(\u00a0(\s)){1,}");
 		if(luzumsuz3.Match(ArticleText).Success) { //Art arda kırılmaz boşluk-boşluk
 			ArticleText = luzumsuz3.Replace(ArticleText, "$2");
-			gereksiz.Add("[[Ayrılmaz alan|kırılmaz boşluk]] (U+00A0)");
+			if(!kirilmaz) {
+				gereksiz.Add("[[Ayrılmaz alan|kırılmaz boşluk]] (U+00A0)");
+				kirilmaz = true;	
+			}
 		}
 
 		Regex luzumsuz4 = new Regex(@"(\={2,4})(.*?\u00a0.*?)(\={2,4})");
@@ -56,7 +64,9 @@ public class GorunmezKarakter {
 					ArticleText = luzumsuz4.Replace(ArticleText, "$1"+baslik+"$3", 1);
 				} else bittimi = true;
 			}
-			gereksiz.Add("[[Ayrılmaz alan|kırılmaz boşluk]] (U+00A0)");
+			if(!kirilmaz) {
+				gereksiz.Add("[[Ayrılmaz alan|kırılmaz boşluk]] (U+00A0)");
+			}
 		}
 
 		Regex luzumsuz5 = new Regex(@"(\s*)\u200B{1,}");

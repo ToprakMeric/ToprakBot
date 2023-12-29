@@ -90,7 +90,7 @@ public class ToprakBot {
 
 	static async Task<List<string>> TitleList() {
         List<string> titles = new List<string>();
-        //for(int i=0;i<30;i++) {
+        for(int i=-1;i<1;i++) {
             string apiUrl = "https://tr.wikipedia.org/w/api.php?action=query&formatversion=2&list=recentchanges&rcdir=older&rcend="+DateTime.Now.AddDays(-i-1).ToString("yyyy-MM-dd")+"T00:00:00.000Z&rclimit=max&rcnamespace=0&rcprop=title&rcstart="+DateTime.Now.AddDays(-i).ToString("yyyy-MM-dd")+"T00:00:00.000Z&rctype=new&format=json";
             using(HttpClient client = new HttpClient()) {
                 string json = await client.GetStringAsync(apiUrl);
@@ -101,7 +101,7 @@ public class ToprakBot {
                     titles.Add(title);
                 }
             }
-        //}
+        }
         return titles;
     }
 
