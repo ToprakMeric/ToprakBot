@@ -137,14 +137,11 @@ public class ToprakBot {
 		Regex regex3 = new Regex(@"==\s*?Referanslar\s*?==", RegexOptions.IgnoreCase);
 		if(regex3.Match(ArticleText).Success) ArticleText = regex3.Replace(ArticleText, "== Kaynakça ==");
 
-		Regex regex4 = new Regex(@"\|(ölüurl|ölü-url|bozukurl|bozukURL|deadurl|dead-url)\s*=\s*no");
+		Regex regex4 = new Regex(@"\|(ölüurl|ölü-url|bozukurl|bozukURL|deadurl|dead-url|url-status|urlstatus)\s*=\s*(no|live)");
 		if(regex4.Match(ArticleText).Success) ArticleText = regex4.Replace(ArticleText, "|ölüurl=hayır");
 
-		Regex regex5 = new Regex(@"\|\s*(ölüurl|ölü-url|bozukurl|bozukURL|deadurl|dead-url)\s*=\s*yes");
+		Regex regex5 = new Regex(@"\|\s*(ölüurl|ölü-url|bozukurl|bozukURL|deadurl|dead-url|url-status|urlstatus)\s*=\s*(yes|dead)");
 		if(regex5.Match(ArticleText).Success) ArticleText = regex5.Replace(ArticleText, "|ölüurl=evet");
-
-		Regex regex6 = new Regex(@"\|\s*url-status\s*=\s*dead");
-		if(regex6.Match(ArticleText).Success) ArticleText = regex6.Replace(ArticleText, "|ölüurl=evet");
 
 		Regex regex7 = new Regex(@"\|\s*thumb\s*(\||]])");
 		if(regex7.Match(ArticleText).Success) ArticleText = regex7.Replace(ArticleText, "|küçükresim$1");
