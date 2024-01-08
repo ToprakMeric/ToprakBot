@@ -12,7 +12,6 @@ public class GorunmezKarakter {
 		Regex arapça = new Regex(@"[\u0621-\u064A]"); //Arapça dedektörü
 		Regex ibranice = new Regex(@"[\u0590-\u05FF]"); //İbranice dedektörü
 
-
 		//lüzumsuz karakter kaldırıcı
 		Regex lefttoright = new Regex(@"(\u200E)"); //left-to-rigt
 		Regex righttoleft = new Regex(@"(\u200F)"); //rigt-to-left

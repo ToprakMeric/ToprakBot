@@ -89,21 +89,21 @@ public class ToprakBot {
 	}
 
 	static async Task<List<string>> TitleList() {
-        List<string> titles = new List<string>();
-        for(int i=-1;i<1;i++) {
-            string apiUrl = "https://tr.wikipedia.org/w/api.php?action=query&formatversion=2&list=recentchanges&rcdir=older&rcend="+DateTime.Now.AddDays(-i-1).ToString("yyyy-MM-dd")+"T00:00:00.000Z&rclimit=max&rcnamespace=0&rcprop=title&rcstart="+DateTime.Now.AddDays(-i).ToString("yyyy-MM-dd")+"T00:00:00.000Z&rctype=new&format=json";
-            using(HttpClient client = new HttpClient()) {
-                string json = await client.GetStringAsync(apiUrl);
-                var jsonObject = JsonConvert.DeserializeObject<JObject>(json);
-                var recentChanges = jsonObject["query"]["recentchanges"];
-                foreach(var change in recentChanges) {
-                    string title = change["title"].ToString();
-                    titles.Add(title);
-                }
-            }
-        }
-        return titles;
-    }
+		List<string> titles = new List<string>();
+		for(int i=-1;i<1;i++) {
+			string apiUrl = "https://tr.wikipedia.org/w/api.php?action=query&formatversion=2&list=recentchanges&rcdir=older&rcend="+DateTime.Now.AddDays(-i-1).ToString("yyyy-MM-dd")+"T00:00:00.000Z&rclimit=max&rcnamespace=0&rcprop=title&rcstart="+DateTime.Now.AddDays(-i).ToString("yyyy-MM-dd")+"T00:00:00.000Z&rctype=new&format=json";
+			using(HttpClient client = new HttpClient()) {
+				string json = await client.GetStringAsync(apiUrl);
+				var jsonObject = JsonConvert.DeserializeObject<JObject>(json);
+				var recentChanges = jsonObject["query"]["recentchanges"];
+				foreach(var change in recentChanges) {
+					string title = change["title"].ToString();
+					titles.Add(title);
+				}
+			}
+		}
+		return titles;
+	}
 
 	static public Tuple<string, string> Edit(string ArticleText, string ArticleTitle) {
 		string summary = "";
@@ -195,7 +195,7 @@ public class ToprakBot {
 		return new Tuple<string, string>(ArticleText, summary);
 	}
 
-	    public int NameSpaceDedector(string ArticleTitle) {
+		public int NameSpaceDedector(string ArticleTitle) {
 		Regex colon = new Regex(@"^(.*?)\:");
 		if (colon.Match(ArticleTitle).Success) {
 			var aracı = colon.Match(ArticleTitle);
@@ -264,6 +264,6 @@ public class ToprakBot {
 					return 0;
 			}
 		}
-        return 0;
-    }
+		return 0;
+	}
 }

@@ -80,9 +80,9 @@ public class Upright {
 					uprightStr = uprightStr.Replace(",", ".");
 
 					Regex sıfıryokedici = new Regex(@"(\d)(\.00|(\.\d)0)");
-					if(sıfıryokedici.Match(uprightStr).Success) uprightStr=sıfıryokedici.Replace(uprightStr, "$1$3");
+					if(sıfıryokedici.Match(uprightStr).Success) uprightStr = sıfıryokedici.Replace(uprightStr, "$1$3");
 
-					DosyaMetin = pikrgx.Replace(DosyaMetin, "|upright="+uprightStr);
+					DosyaMetin = pikrgx.Replace(DosyaMetin, "|upright=" + uprightStr);
 
 					return DosyaMetin;
 				} else return match.Value;
