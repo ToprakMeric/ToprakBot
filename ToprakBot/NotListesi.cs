@@ -24,6 +24,9 @@ public class NotListesi {
 				else if (kategori.Success) ArticleText = ArticleText.Insert(kategori.Index, "== Not listesi ==\n{{not listesi}}\r\n\n");
 				else ArticleText += "\r\n\r\n== Not listesi ==\n{{not listesi}}";
 				summary = "; not listesi ekleniyor";
+
+				Regex notdz = new Regex(@"(\S\n{1})(\=\= Not listesi ==)");
+				ArticleText = notdz.Replace(ArticleText, "$1\n$2");
 			}
 		}
 		return new Tuple<string, string>(ArticleText, summary);

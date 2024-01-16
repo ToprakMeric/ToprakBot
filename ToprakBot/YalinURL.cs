@@ -13,7 +13,7 @@ public class YalinURL {
 		foreach(Match match in yalinurl.Matches(ArticleText)) bos++;
 
 		if((bos!=0)&&!(sablonkontrol.Match(ArticleText).Success)&&(yalinurl.Match(ArticleText).Success)) {
-			if(bos>=3) ArticleText = "{{Yalın URL'leri temizle|tarih={{yk:CURRENTMONTHNAME}} {{yk:CURRENTYEAR}}}}\n"+ArticleText;
+			if(bos>=3) ArticleText = "{{Yalın URL'leri temizle|tarih={{yk:CURRENTMONTHNAME}} {{yk:CURRENTYEAR}}}}\n" + ArticleText;
 			else ArticleText = satirici.Replace(ArticleText, "$1$2 {{Satır içi yalın URL}}$3");
 			summary += "; yalın URL bakım şablonu eklendi";
 		}

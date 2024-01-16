@@ -176,12 +176,12 @@ public class GorunmezKarakter {
 		foreach(var item2 in gereksiz) str2 = str2 + item2 + ", ";
 
 		if(str!="") {
-			str=str.Remove(str.Length-2);
+			str = str.Remove(str.Length-2);
 			summary += "; Görünmez karakterler fark edilebilir kılındı: " + str;
 		}
 		if(!(str2=="")) {
-			str2=str2.Remove(str2.Length-2);
-			summary += "; Gereksiz görünmez karakterler kaldırıldı: "+str2;
+			str2 = str2.Remove(str2.Length-2);
+			summary += "; Gereksiz görünmez karakterler kaldırıldı: " + str2;
 		}
 
 		return new Tuple<string, string>(ArticleText, summary);

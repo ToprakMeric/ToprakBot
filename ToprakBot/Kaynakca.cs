@@ -42,6 +42,9 @@ public class Kaynakca {
 					ArticleText = R2.Replace(ArticleText, "== Kaynakça ==\r\n{{kaynakça|30em}}");
 					summary += "; kaynakça şablonu ekleniyor";
 				}
+
+				Regex kaydz = new Regex(@"(\S\n{1})(\=\= Kaynakça ==)");
+				ArticleText = kaydz.Replace(ArticleText, "$1\n$2");
 			}
 		}
 		return new Tuple<string, string>(ArticleText, summary);
