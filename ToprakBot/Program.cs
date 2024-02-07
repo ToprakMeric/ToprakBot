@@ -143,8 +143,8 @@ public class ToprakBot {
 		Regex regex5 = new Regex(@"\|\s*(ölüurl|ölü-url|bozukurl|bozukURL|deadurl|dead-url|url-status|urlstatus)\s*=\s*(yes|dead)");
 		if(regex5.Match(ArticleText).Success) ArticleText = regex5.Replace(ArticleText, "|ölüurl=evet");
 
-		//(\|\s*?sayfalar\s*?\=\s*?\d{1,5}\s*?)[\u2012\u2013\u2014\u2015\u2010](\s*?\d{1,5}\s*?(\||\}\}))
-		//$1-$2
+		Regex regex6 = new Regex(@"(\|\s*?sayfalar\s*?\=\s*?\d{1,5}\s*?)[\u2012\u2013\u2014\u2015\u2010](\s*?\d{1,5}\s*?(\||\}\}))");
+		if(regex6.Match(ArticleText).Success) ArticleText = regex6.Replace(ArticleText, "$1-$2");
 
 		Regex regex7 = new Regex(@"\|\s*thumb\s*(\||]])");
 		if(regex7.Match(ArticleText).Success) ArticleText = regex7.Replace(ArticleText, "|küçükresim$1");
@@ -163,6 +163,9 @@ public class ToprakBot {
 
 		Regex regex12 = new Regex(@"(\[\[\s*?)(Category|Kategori)(\s*?\:\s*?)Short description is different from Wikidata(\s*?\]\])", RegexOptions.IgnoreCase);
 		if(regex12.Match(ArticleText).Success) ArticleText = regex12.Replace(ArticleText, "");
+
+		Regex regex13 = new Regex(@"(\[\[\s*?(category|kategori)\s*?\:.*?\]\])\n{2,}(\[\[\s*?(category|kategori)\s*?\:.*?\]\])", RegexOptions.IgnoreCase);
+		if(regex13.Match(ArticleText).Success) ArticleText = regex13.Replace(ArticleText, "$1\n$3");
 
 		ArticleText = Parsers.TemplateRedirects(ArticleText, WikiRegexes.TemplateRedirects);
 		ArticleText = Parsers.RenameTemplateParameters(ArticleText, WikiRegexes.RenamedTemplateParameters);
