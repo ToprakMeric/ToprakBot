@@ -167,6 +167,9 @@ public class ToprakBot {
 		Regex regex13 = new Regex(@"(\[\[\s*?(category|kategori)\s*?\:.*?\]\])\n{2,}(\[\[\s*?(category|kategori)\s*?\:.*?\]\])", RegexOptions.IgnoreCase);
 		if(regex13.Match(ArticleText).Success) ArticleText = regex13.Replace(ArticleText, "$1\n$3");
 
+		Regex regex14 = new Regex(@"(\[\[\s*?)category(\s*?\:.*?\]\])", RegexOptions.IgnoreCase);
+		if(regex14.Match(ArticleText).Success) ArticleText = regex14.Replace(ArticleText, "$1Kategori$2");
+
 		ArticleText = Parsers.TemplateRedirects(ArticleText, WikiRegexes.TemplateRedirects);
 		ArticleText = Parsers.RenameTemplateParameters(ArticleText, WikiRegexes.RenamedTemplateParameters);
 
