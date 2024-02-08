@@ -11,11 +11,15 @@ using Newtonsoft.Json;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using System.Net.Http;
+using System.Net;
+using System.Web;
+using System.Linq;
+using System.Text;
 
 public class ToprakBot {
 	public static async Task Main(string[] args) {
 		bool manual = false; //Sayfa listesini false ise API'den, true ise elle eklenmiş dosyadan alır
-		bool makine = true; //Nerede çalışlacağına göre dosya konumlarını ayarlar, true ise makinede false ise pc de
+		bool makine = false; //Nerede çalışlacağına göre dosya konumlarını ayarlar, true ise makinede false ise pc de
 
 		ApiEdit editor = new ApiEdit("https://tr.wikipedia.org/w/");
 
@@ -37,6 +41,8 @@ public class ToprakBot {
 				while((line=reader.ReadLine())!=null) titles.Add(line);
 			}
 		}
+		List<string> hatalıkorumaşablist = await korumalist();
+		titles.AddRange(hatalıkorumaşablist);
 
 		int n = titles.Count;
 
@@ -69,13 +75,26 @@ public class ToprakBot {
 					ekozet = tuple.Item2;
 				}
 			}
-			
-			if(NameSpace!=0) Console.ForegroundColor = ConsoleColor.Yellow;
-			else if(ArticleText==madde) Console.ForegroundColor = ConsoleColor.Red;
-			else {
+
+			//Lüzumsuz koruma şablonu kaldır
+			if (hatalıkorumaşablist.Contains(sayfa)) {
+				bool protectionStatus = await GetProtectionStatus(sayfa);
+				if (!protectionStatus) {
+					Regex koruma = new Regex(@"(?:\/\*)?\s*(?:<noinclude>)?\s*\{\{\s*(koruma|koruma-|pp-|yarı koruma)[^{}]*?\s*?\}\}\s*(?:<\/noinclude>)?\s*(?:\*\/)?\s*", RegexOptions.IgnoreCase | RegexOptions.Multiline);
+					ArticleText = koruma.Replace(ArticleText, "");
+					ekozet += "; lüzumsuz koruma şablonu kaldırıldı";
+				} else {
+					Console.ForegroundColor = ConsoleColor.DarkYellow;
+					Console.WriteLine(i+1 + "/" + n + ":\t" + sayfa + "\t");
+					continue;
+				}
+			}
+			if(ArticleText==madde) {
+				if(NameSpace!=0) Console.ForegroundColor = ConsoleColor.Yellow;
+				else Console.ForegroundColor = ConsoleColor.Red;
+			} else {
 				string summary = "Düzenlemeler ve imla" + ekozet;
 				Console.ForegroundColor = ConsoleColor.Green;
-				string line = $"{sayfa}";
 				loglist.Add(sayfa);
 				editor.Save(ArticleText, summary, true, WatchOptions.NoChange);
 			}
@@ -84,8 +103,7 @@ public class ToprakBot {
 
 		foreach(var item in loglist) sw.WriteLine(item);
 		sw.Close();
-		//Console.ReadKey();
-		await Task.Delay(TimeSpan.FromSeconds(1));
+		Console.ReadKey();
 	}
 
 	static async Task<List<string>> TitleList() {
@@ -103,6 +121,37 @@ public class ToprakBot {
 			}
 		}
 		return titles;
+	}
+
+	static async Task<List<string>> korumalist() {
+		List<string> titles = new List<string>();
+		string apiUrl = "https://tr.wikipedia.org/w/api.php?action=query&format=json&list=categorymembers&formatversion=2&cmtitle=Kategori:Yarı korumaya alınmış sayfalar&cmprop=title&cmlimit=max";
+		try {
+			using (var client = new WebClient()) {
+				client.Encoding = Encoding.UTF8;
+				string jsonContent = await client.DownloadStringTaskAsync(apiUrl);
+				
+				dynamic data = JsonConvert.DeserializeObject(jsonContent);
+				foreach (var item in data.query.categorymembers) titles.Add(item.title.ToString());
+			}
+		}
+		catch (Exception ex) {
+			Console.WriteLine("Hata oluştu: " + ex.Message);
+		}
+		return titles;
+	}
+
+	static async Task<bool> GetProtectionStatus(string title) {
+		string apiUrl = "https://tr.wikipedia.org/w/api.php?action=query&format=json&prop=info&titles=" + title + "&formatversion=2&inprop=protection";
+		using (var client = new HttpClient()) {
+			HttpResponseMessage response = await client.GetAsync(apiUrl);
+			response.EnsureSuccessStatusCode();
+			string responseBody = await response.Content.ReadAsStringAsync();
+			JObject jsonResponse = JObject.Parse(responseBody);
+			JToken protectionToken = jsonResponse.SelectToken("query.pages[0].protection");
+			if (protectionToken != null && protectionToken.Count() > 0) return true;
+			else return false;
+		}
 	}
 
 	static public Tuple<string, string> Edit(string ArticleText, string ArticleTitle) {
@@ -143,7 +192,7 @@ public class ToprakBot {
 		Regex regex5 = new Regex(@"\|\s*(ölüurl|ölü-url|bozukurl|bozukURL|deadurl|dead-url|url-status|urlstatus)\s*=\s*(yes|dead)");
 		if(regex5.Match(ArticleText).Success) ArticleText = regex5.Replace(ArticleText, "|ölüurl=evet");
 
-		Regex regex6 = new Regex(@"(\|\s*?sayfalar\s*?\=\s*?\d{1,5}\s*?)[\u2012\u2013\u2014\u2015\u2010](\s*?\d{1,5}\s*?(\||\}\}))");
+		Regex regex6 = new Regex(@"(\|\s*?(pages|sayfalar)\s*?\=\s*?\d{1,5}\s*?)[\u2012\u2013\u2014\u2015\u2010](\s*?\d{1,5}\s*?(\||\}\}))");
 		if(regex6.Match(ArticleText).Success) ArticleText = regex6.Replace(ArticleText, "$1-$2");
 
 		Regex regex7 = new Regex(@"\|\s*thumb\s*(\||]])");
