@@ -19,7 +19,7 @@ using System.Text;
 public class ToprakBot {
 	public static async Task Main(string[] args) {
 		bool manual = false; //Sayfa listesini false ise API'den, true ise elle eklenmiş dosyadan alır
-		bool makine = false; //Nerede çalışlacağına göre dosya konumlarını ayarlar, true ise makinede false ise pc de
+		bool makine = true; //Nerede çalışlacağına göre dosya konumlarını ayarlar, true ise makinede false ise pc de
 
 		ApiEdit editor = new ApiEdit("https://tr.wikipedia.org/w/");
 
@@ -103,7 +103,7 @@ public class ToprakBot {
 
 		foreach(var item in loglist) sw.WriteLine(item);
 		sw.Close();
-		Console.ReadKey();
+		//Console.ReadKey();
 	}
 
 	static async Task<List<string>> TitleList() {
@@ -125,7 +125,7 @@ public class ToprakBot {
 
 	static async Task<List<string>> korumalist() {
 		List<string> titles = new List<string>();
-		string apiUrl = "https://tr.wikipedia.org/w/api.php?action=query&format=json&list=categorymembers&formatversion=2&cmtitle=Kategori:Yarı korumaya alınmış sayfalar&cmprop=title&cmlimit=max";
+		string apiUrl = "https://tr.wikipedia.org/w/api.php?action=query&format=json&list=categorymembers&formatversion=2&cmtitle=Kategori:Hatalı koruma şablonuna sahip sayfalar&cmprop=title&cmlimit=max";
 		try {
 			using (var client = new WebClient()) {
 				client.Encoding = Encoding.UTF8;
