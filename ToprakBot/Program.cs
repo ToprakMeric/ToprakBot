@@ -193,7 +193,7 @@ public class ToprakBot {
 		if(regex5.Match(ArticleText).Success) ArticleText = regex5.Replace(ArticleText, "|ölüurl=evet");
 
 		Regex regex6 = new Regex(@"(\|\s*?(pages|sayfalar)\s*?\=\s*?\d{1,5}\s*?)[\u2012\u2013\u2014\u2015\u2010](\s*?\d{1,5}\s*?(\||\}\}))");
-		if(regex6.Match(ArticleText).Success) ArticleText = regex6.Replace(ArticleText, "$1-$2|");
+		if(regex6.Match(ArticleText).Success) ArticleText = regex6.Replace(ArticleText, "$1-$2$4");
 
 		Regex regex7 = new Regex(@"\|\s*thumb\s*(\||]])");
 		if(regex7.Match(ArticleText).Success) ArticleText = regex7.Replace(ArticleText, "|küçükresim$1");
