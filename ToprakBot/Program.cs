@@ -18,8 +18,8 @@ using System.Text;
 
 public class ToprakBot {
 	public static async Task Main(string[] args) {
-		bool manual = false; //Sayfa listesini false ise API'den, true ise elle eklenmiş dosyadan alır
-		bool makine = true; //Nerede çalışlacağına göre dosya konumlarını ayarlar, true ise makinede false ise pc de
+		bool manual = true; //Sayfa listesini false ise API'den, true ise elle eklenmiş dosyadan alır
+		bool makine = false; //Nerede çalışlacağına göre dosya konumlarını ayarlar, true ise makinede false ise pc de
 
 		ApiEdit editor = new ApiEdit("https://tr.wikipedia.org/w/");
 
@@ -192,7 +192,7 @@ public class ToprakBot {
 		Regex regex5 = new Regex(@"\|\s*(ölüurl|ölü-url|bozukurl|bozukURL|deadurl|dead-url|url-status|urlstatus)\s*=\s*(yes|dead)");
 		if(regex5.Match(ArticleText).Success) ArticleText = regex5.Replace(ArticleText, "|ölüurl=evet");
 
-		Regex regex6 = new Regex(@"(\|\s*?(pages|sayfalar)\s*?\=\s*?\d{1,5}\s*?)[\u2012\u2013\u2014\u2015\u2010](\s*?\d{1,5}\s*?(\||\}\}))");
+		Regex regex6 = new Regex(@"(\|\s*?(pages|sayfalar)\s*?\=\s*?\d{1,5}\s*?)[\u2012\u2013\u2014\u2015\u2010](\s*?\d{1,5}\s*?)(\||\}\})");
 		if(regex6.Match(ArticleText).Success) ArticleText = regex6.Replace(ArticleText, "$1-$3$4");
 
 		Regex regex7 = new Regex(@"\|\s*thumb\s*(\||]])");
