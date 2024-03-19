@@ -61,60 +61,50 @@ public class ImageTest {
 	}
 
 	public static void PythonUpload(string file, string uzanti) {
-		string pythonScriptPath = "D:\\upload\\main.py";
-		string pythonInterpreterPath;
-		if (ToprakBot.makine) pythonInterpreterPath = "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python310";
-		else pythonInterpreterPath = "C:\\Users\\topra\\AppData\\Local\\Programs\\Python\\Python310\\python.exe";
+
+		string pythonScriptPath;
+		if (ToprakBot.makine) pythonScriptPath = @"C:\Users\Administrator\Desktop\test.py";
+		else pythonScriptPath = @"D:\\upload\\main.py";
 		int b = ToprakBot.makine ? 0 : 1;
-		string scriptArguments = file.Replace(" ", "_") + " " + uzanti + " upload " + b;
-		string fullCommand = $"{pythonScriptPath} {scriptArguments}";
+		string arguments = file.Replace(" ", "_") + " " + uzanti + " upload " + b;
 
-		ProcessStartInfo startInfo = new ProcessStartInfo {
-			FileName = pythonInterpreterPath,
-			Arguments = fullCommand,
-			RedirectStandardOutput = true,
-			RedirectStandardError = true,
-			UseShellExecute = false,
-			CreateNoWindow = true
-		};
+		ProcessStartInfo start = new ProcessStartInfo();
+		start.FileName = "python";
+		start.Arguments = $"{pythonScriptPath} {arguments}";
+		start.UseShellExecute = false;
+		start.RedirectStandardOutput = true;
 
-		using (Process process = new Process { StartInfo = startInfo }) {
-			process.Start();
+		using (Process process = Process.Start(start)) {
+			using (System.IO.StreamReader reader = process.StandardOutput) {
+				string result = reader.ReadToEnd();
+				Console.WriteLine(result);
+			}
 
-			string output = process.StandardOutput.ReadToEnd();
-			string error = process.StandardError.ReadToEnd();
-
-			//Console.WriteLine("Output:" + output);
-			Console.WriteLine(error);
+			process.WaitForExit();
 		}
 	}
 
 	public static void PythonRevDel(string file, string id) {
-		string pythonScriptPath = "D:\\upload\\main.py";
-		string pythonInterpreterPath;
-		if (ToprakBot.makine) pythonInterpreterPath = "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python310";
-		else pythonInterpreterPath = "C:\\Users\\topra\\AppData\\Local\\Programs\\Python\\Python310\\python.exe";
+
+		string pythonScriptPath;
+		if (ToprakBot.makine) pythonScriptPath = @"C:\Users\Administrator\Desktop\test.py";
+		else pythonScriptPath = @"D:\\upload\\main.py";
 		int b = ToprakBot.makine ? 0 : 1;
-		string scriptArguments = file.Replace(" ", "_") + " " + id + " revdel " + b;
-		string fullCommand = $"{pythonScriptPath} {scriptArguments}";
+		string arguments = file.Replace(" ", "_") + " " + id + " revdel " + b;
 
-		ProcessStartInfo startInfo = new ProcessStartInfo {
-			FileName = pythonInterpreterPath,
-			Arguments = fullCommand,
-			RedirectStandardOutput = true,
-			RedirectStandardError = true,
-			UseShellExecute = false,
-			CreateNoWindow = true
-		};
+		ProcessStartInfo start = new ProcessStartInfo();
+		start.FileName = "python";
+		start.Arguments = $"{pythonScriptPath} {arguments}";
+		start.UseShellExecute = false;
+		start.RedirectStandardOutput = true;
 
-		using (Process process = new Process { StartInfo = startInfo }) {
-			process.Start();
+		using (Process process = Process.Start(start)) {
+			using (System.IO.StreamReader reader = process.StandardOutput) {
+				string result = reader.ReadToEnd();
+				Console.WriteLine(result);
+			}
 
-			string output = process.StandardOutput.ReadToEnd();
-			string error = process.StandardError.ReadToEnd();
-
-			//Console.WriteLine("Output:" + output);
-			Console.WriteLine(error);
+			process.WaitForExit();
 		}
 	}
 }

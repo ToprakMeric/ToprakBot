@@ -135,7 +135,9 @@ public class ToprakBot {
 					int newHeight = (int)(300 / oran);
 					Bitmap resizedImage = ImageTest.ResizeImage(imageBytes, newWidth, newHeight);
 
-					string outputPath = "D:\\ResizedImage" + uzanti;
+					string outputPath;
+					if (ToprakBot.makine) outputPath = "C:\\Users\\Administrator\\Desktop\\file\\ResizedImage" + uzanti;
+					else outputPath = "D:\\ResizedImage" + uzanti;
 					switch(uzanti.ToLower()) {
 						case ".png":
 							resizedImage.Save(outputPath, System.Drawing.Imaging.ImageFormat.Png);
