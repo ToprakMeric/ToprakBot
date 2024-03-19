@@ -15,21 +15,21 @@ using System.Net;
 using System.Web;
 using System.Linq;
 using System.Text;
+using static System.Net.Mime.MediaTypeNames;
+using System.Drawing;
 
 public class ToprakBot {
+	public static bool manual = true; //Sayfa listesini false ise API'den, true ise elle eklenmiş dosyadan alır
+	public static bool makine = false; //Nerede çalışlacağına göre dosya konumlarını ayarlar, true ise makinede false ise pc de
+	public static string wiki = "tr.wikipedia";
+
 	public static async Task Main(string[] args) {
-		bool manual = true; //Sayfa listesini false ise API'den, true ise elle eklenmiş dosyadan alır
-		bool makine = false; //Nerede çalışlacağına göre dosya konumlarını ayarlar, true ise makinede false ise pc de
 
-		ApiEdit editor = new ApiEdit("https://tr.wikipedia.org/w/");
-
-		string password;
-		if(!makine) password = File.ReadAllText("D:\\AWB\\password.txt");
-		else password = File.ReadAllText("C:\\Users\\Administrator\\Desktop\\password.txt");
-		editor.Login("ToprakBot@aws", password);
+		ApiEdit editor = new ApiEdit("https://" + wiki + ".org/w/");
+		login(editor);
 
 		List<string> titles;
-		if(!manual) titles = await TitleList();
+		if(!manual) titles = await TitleList(wiki);
 		else {
 			StreamReader reader;
 			if(!makine) reader = new StreamReader("D:\\AWB\\liste.txt");
@@ -41,8 +41,11 @@ public class ToprakBot {
 				while((line=reader.ReadLine())!=null) titles.Add(line);
 			}
 		}
-		List<string> hatalıkorumaşablist = await korumalist();
+		List<string> hatalıkorumaşablist = await korumalist(wiki);
 		if(!manual) titles.AddRange(hatalıkorumaşablist);
+
+		//List<string> wikiliste = await ToprakBot.wikiliste(wiki);
+		//titles.AddRange(wikiliste);
 
 		int n = titles.Count;
 
@@ -53,8 +56,8 @@ public class ToprakBot {
 		else filePath = @"C:\Users\Administrator\Desktop\log\" + bugunformat + ".txt";
 		StreamWriter sw = File.AppendText(filePath);
 
-		WikiRegexes.RenamedTemplateParameters=Parsers.LoadRenamedTemplateParameters(editor.Open("Project:AutoWikiBrowser/Rename template parameters"));
-		WikiRegexes.TemplateRedirects=Parsers.LoadTemplateRedirects(editor.Open("Project:AutoWikiBrowser/Template redirects"));
+		WikiRegexes.RenamedTemplateParameters = Parsers.LoadRenamedTemplateParameters(editor.Open("Project:AutoWikiBrowser/Rename template parameters"));
+		WikiRegexes.TemplateRedirects = Parsers.LoadTemplateRedirects(editor.Open("Project:AutoWikiBrowser/Template redirects"));
 
 		var loglist = new List<string>();
 
@@ -64,21 +67,19 @@ public class ToprakBot {
 			i++;
 			string ArticleText = "", madde = "", ekozet = "";
 			int NameSpace = türlü.NameSpaceDedector(sayfa);
-			if(NameSpace == 0) { //Sadece ana ad alanı, diğer ad alanı kodları için bkz VP:İA
-				ArticleText = editor.Open(sayfa); //içeriği alıyor
-				madde = ArticleText;
+			ArticleText = editor.Open(sayfa); //içeriği alıyor
+			madde = ArticleText;
 
-				Regex degistirmemeli = new Regex(@"\{\{\s*?(sil|çalışma|bekletmeli sil)\s*?(\||\}\})", RegexOptions.IgnoreCase);
-				if(!degistirmemeli.Match(ArticleText).Success) {
-					var tuple = Edit(ArticleText, sayfa);
-					ArticleText = tuple.Item1;
-					ekozet = tuple.Item2;
-				}
+			Regex degistirmemeli = new Regex(@"\{\{\s*?(sil|çalışma|bekletmeli sil)\s*?(\||\}\})", RegexOptions.IgnoreCase);
+			if((!degistirmemeli.Match(ArticleText).Success)&&(NameSpace == 0)) { //Sadece ana ad alanı, diğer ad alanı kodları için bkz VP:İA
+				var tuple = Edit(ArticleText, sayfa);
+				ArticleText = tuple.Item1;
+				ekozet = tuple.Item2;
 			}
 
 			//Lüzumsuz koruma şablonu kaldır
 			if (hatalıkorumaşablist.Contains(sayfa)) {
-				bool protectionStatus = await GetProtectionStatus(sayfa);
+				bool protectionStatus = await GetProtectionStatus(sayfa, wiki);
 				if (!protectionStatus) {
 					Regex koruma = new Regex(@"(?:\/\*)?\s*(?:<noinclude>)?\s*\{\{\s*(koruma|koruma-|pp-|yarı koruma)[^{}]*?\s*?\}\}\s*(?:<\/noinclude>)?\s*(?:\*\/)?\s*", RegexOptions.IgnoreCase | RegexOptions.Multiline);
 					ArticleText = koruma.Replace(ArticleText, "");
@@ -89,6 +90,7 @@ public class ToprakBot {
 					continue;
 				}
 			}
+
 			if(ArticleText==madde) {
 				if(NameSpace!=0) Console.ForegroundColor = ConsoleColor.Yellow;
 				else Console.ForegroundColor = ConsoleColor.Red;
@@ -103,13 +105,124 @@ public class ToprakBot {
 
 		foreach(var item in loglist) sw.WriteLine(item);
 		sw.Close();
-		//Console.ReadKey();
+
+		//Adil kullanım
+		List<string> liste = await ImageTest.dosyalist();
+		//string[] liste = {"As roma.png"};
+		Regex uzantiregex = new Regex(@"(\.[a-z0-9]{3,4})$", RegexOptions.IgnoreCase);
+		int l = liste.Count, m = -1;
+
+		//string file = "Dosya:Beyaz TV logo.jpeg";
+		foreach(string file in liste) {
+			string dosya = file.Replace ("Dosya:", "");
+			Console.ForegroundColor = ConsoleColor.Yellow;
+			Console.WriteLine(++m+1 + "/" + l + ": " + dosya);
+			Console.ForegroundColor = ConsoleColor.White;
+			string apiUrl = "http://tr.wikipedia.org/wiki/Special:FilePath/" + dosya;
+			var falan = uzantiregex.Match(dosya);
+			string uzanti = falan.Groups[1].Value;
+
+			string[] allowedExtensions = { ".png", ".jpg", ".jpeg", ".gif", ".tiff" };
+			if (allowedExtensions.Contains(uzanti.ToLower())) {
+				//Dosyayı indir
+				byte[] imageBytes = await ImageTest.DownloadImage(apiUrl);
+
+				//Dosyayı ufalt ve yükle
+				float oran = Upright.FileRatio(dosya, true).Result;
+				Console.WriteLine("Oran:" + oran);
+				if(oran!=-1) {
+					int newWidth = 300;
+					int newHeight = (int)(300 / oran);
+					Bitmap resizedImage = ImageTest.ResizeImage(imageBytes, newWidth, newHeight);
+
+					string outputPath = "D:\\ResizedImage" + uzanti;
+					switch(uzanti.ToLower()) {
+						case ".png":
+							resizedImage.Save(outputPath, System.Drawing.Imaging.ImageFormat.Png);
+							break;
+						case ".jpg":
+						case ".jpeg":
+							resizedImage.Save(outputPath, System.Drawing.Imaging.ImageFormat.Jpeg);
+							break;
+						case ".gif":
+							resizedImage.Save(outputPath, System.Drawing.Imaging.ImageFormat.Gif);
+							break;
+						case ".tiff":
+							resizedImage.Save(outputPath, System.Drawing.Imaging.ImageFormat.Tiff);
+							break;
+					}
+
+					Console.WriteLine("Adım 1: Resim başarıyla boyutlandırıldı ve kaydedildi.");
+
+					ImageTest.PythonUpload(dosya, uzanti);
+
+				} else Console.WriteLine("Adım 1: Görsel zaten küçük.");
+
+				//{{Adil kullanım kalitesini düşür}} kaldır
+				string ArticleText = editor.Open("Dosya:" + dosya);
+
+				Regex dusursablon = new Regex(@"\{\{\s*?(adil kullanım kalitesini düşür|non-free reduce)(\|.*?|\s*?)\}\}\n*", RegexOptions.IgnoreCase);
+				if(dusursablon.Match(ArticleText).Success) {
+					ArticleText = dusursablon.Replace(ArticleText, "");
+					Console.WriteLine("Adım 2: Bakım şablonu kaldırıldı.");
+					editor.Save(ArticleText, "Adil kullanım kalitesini düşür bakım şablonu kaldırıldı.", true, WatchOptions.NoChange);
+				} else Console.WriteLine("Adım 2: Şablon bulunamadı.");
+
+				//Eski sürümleri gizle
+				string apiUrl2 = "https://tr.wikipedia.org/w/api.php?action=query&format=json&prop=imageinfo&titles=Dosya:" + dosya + "&formatversion=2&iiprop=archivename&iilimit=max";
+				try {
+					using (HttpClient client = new HttpClient()) {
+						HttpResponseMessage response = await client.GetAsync(apiUrl2);
+
+						if (response.IsSuccessStatusCode) {
+							string json = await response.Content.ReadAsStringAsync();
+
+							JObject responseObject = JObject.Parse(json);
+
+							JArray imageInfo = responseObject["query"]["pages"][0]["imageinfo"] as JArray;
+
+							int ii = 0;
+							foreach (JToken info in imageInfo) {
+								string archivename = info["archivename"]?.ToString();
+								if (!string.IsNullOrEmpty(archivename)) ii++;
+							}
+							if (ii==0) Console.WriteLine("Adım 3: Gizlenecek sürüm bulunamadı.");
+							else {
+								Console.WriteLine("Adım 3: Sürümler gizleniyor.");
+								foreach (JToken info in imageInfo) {
+									ii++;
+									string archivename = info["archivename"]?.ToString();
+									if (!string.IsNullOrEmpty(archivename)) {
+										string timestamp = archivename.Split('!')[0];
+										ImageTest.PythonRevDel(dosya, timestamp);
+										Console.WriteLine(ii + ": " + timestamp + " gizlendi.");
+									}
+								}
+							}
+						}
+					}
+				}
+				catch (Exception ex) {
+					Console.WriteLine("Exception: " + ex.Message);
+				}
+			 } else Console.WriteLine("Bilinmeyen uzantı.");
+		}
+		Console.WriteLine("Bitti.");
+		Console.ReadKey();
 	}
 
-	static async Task<List<string>> TitleList() {
+	static void login(ApiEdit editor) {
+		string password;
+		if(!makine) password = File.ReadAllText("D:\\AWB\\password.txt");
+		else password = File.ReadAllText("C:\\Users\\Administrator\\Desktop\\password.txt");
+		editor.Login("ToprakBot@aws", password);
+
+	return;
+	}
+	static async Task<List<string>> TitleList(string wiki) {
 		List<string> titles = new List<string>();
 		for(int i=-1;i<1;i++) {
-			string apiUrl = "https://tr.wikipedia.org/w/api.php?action=query&formatversion=2&list=recentchanges&rcdir=older&rcend="+DateTime.Now.AddDays(-i-1).ToString("yyyy-MM-dd")+"T00:00:00.000Z&rclimit=max&rcnamespace=0&rcprop=title&rcstart="+DateTime.Now.AddDays(-i).ToString("yyyy-MM-dd")+"T00:00:00.000Z&rctype=new&format=json";
+			string apiUrl = "https://" + wiki + ".org/w/api.php?action=query&formatversion=2&list=recentchanges&rcdir=older&rcend="+DateTime.Now.AddDays(-i-1).ToString("yyyy-MM-dd")+"T00:00:00.000Z&rclimit=max&rcnamespace=0&rcprop=title&rcstart="+DateTime.Now.AddDays(-i).ToString("yyyy-MM-dd")+"T00:00:00.000Z&rctype=new&format=json";
 			using(HttpClient client = new HttpClient()) {
 				string json = await client.GetStringAsync(apiUrl);
 				var jsonObject = JsonConvert.DeserializeObject<JObject>(json);
@@ -123,9 +236,30 @@ public class ToprakBot {
 		return titles;
 	}
 
-	static async Task<List<string>> korumalist() {
+	/* Henüz tamamlanmamış özellik
+	static async Task<List<string>> wikiliste(string wiki) {
+
+		ApiEdit editor = new ApiEdit("https://" + wiki + ".org/w/");
+		login(editor);
+		string sayfa = editor.Open("Kullanıcı:ToprakBot/Liste");
+		string pattern = @"^\*\s*(.*)$";
+		MatchCollection matches = Regex.Matches(sayfa, pattern, RegexOptions.Multiline);
 		List<string> titles = new List<string>();
-		string apiUrl = "https://tr.wikipedia.org/w/api.php?action=query&format=json&list=categorymembers&formatversion=2&cmtitle=Kategori:Hatalı koruma şablonuna sahip sayfalar&cmprop=title&cmlimit=max";
+
+		foreach (Match match in matches) {
+			if (match.Success) {
+				string title = match.Groups[1].Value.Trim();
+				titles.Add(title);
+			}
+		}
+
+		return titles;
+	}
+	*/
+	
+	static async Task<List<string>> korumalist(string wiki) {
+		List<string> titles = new List<string>();
+		string apiUrl = "https://" + wiki + ".org/w/api.php?action=query&format=json&list=categorymembers&formatversion=2&cmtitle=Kategori:Hatalı koruma şablonuna sahip sayfalar&cmprop=title&cmlimit=max";
 		try {
 			using (var client = new WebClient()) {
 				client.Encoding = Encoding.UTF8;
@@ -141,8 +275,8 @@ public class ToprakBot {
 		return titles;
 	}
 
-	static async Task<bool> GetProtectionStatus(string title) {
-		string apiUrl = "https://tr.wikipedia.org/w/api.php?action=query&format=json&prop=info&titles=" + title + "&formatversion=2&inprop=protection";
+	static async Task<bool> GetProtectionStatus(string title, string wiki) {
+		string apiUrl = "https://" + wiki + ".org/w/api.php?action=query&format=json&prop=info&titles=" + title + "&formatversion=2&inprop=protection";
 		using (var client = new HttpClient()) {
 			HttpResponseMessage response = await client.GetAsync(apiUrl);
 			response.EnsureSuccessStatusCode();
@@ -156,6 +290,25 @@ public class ToprakBot {
 
 	static public Tuple<string, string> Edit(string ArticleText, string ArticleTitle) {
 		string summary = "";
+
+		//Full capital başlık dz - Henüz tamamlanmamış özellik
+		/* 
+		List<string> sablonlar = Parsers.GetAllTemplateDetail(ArticleText);
+		Regex kaynakbaslik = new Regex(@"(\{\{\s*?(?:[\p{L}]*? kaynağı|[Kk]aynak\s*?\||[Cc]ite [\p{L}]?).*?\|\s*?(?:başlık|title)\s*?\=[^\p{L}]*)([\p{Lu}\W\d]*?)([^\p{L}]*(?:\||\}\}))");
+		Regex sablonicisablon = new Regex(@"\{\{([^{}]*\{\{[^{}]*\}\}[^{}]*)*\}\}");
+		foreach(string sablon in sablonlar) {
+			//Console.WriteLine(sablon);
+			if (kaynakbaslik.Match(sablon).Success&&!sablonicisablon.Match(sablon).Success) {
+				//Console.WriteLine("ok");
+				var hmmm = kaynakbaslik.Match(sablon);
+				string başlık = hmmm.Groups[2].Value;
+				başlık = Baslik.Main(başlık);
+				string yenisablon = kaynakbaslik.Replace(sablon, "$1" + başlık + "$3");
+				ArticleText = ArticleText.Replace(sablon, yenisablon);
+			}
+			//Console.WriteLine("---");
+		}
+		*/
 
 		ArticleText = Upright.Main(ArticleText);
 

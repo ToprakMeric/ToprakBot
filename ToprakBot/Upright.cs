@@ -5,8 +5,10 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 public class Upright {
-	public static async Task<float> FileRatio(string file) {
-		string apiUrl = "https://commons.wikimedia.org/w/api.php?action=query&prop=imageinfo&titles=File:"+file+"&iiprop=dimensions&format=json";
+	public static async Task<float> FileRatio(string file, bool adil) {
+		string apiUrl;
+		if (adil) apiUrl = "https://tr.wikipedia.org/w/api.php?action=query&prop=imageinfo&titles=File:" + file + "&iiprop=dimensions&format=json";
+		else apiUrl = "https://commons.wikimedia.org/w/api.php?action=query&prop=imageinfo&titles=File:"+file+"&iiprop=dimensions&format=json";
 
 		int imageHeight = -1, imageWidth = -1;
 
@@ -33,8 +35,8 @@ public class Upright {
 			} catch(Exception ex) {
 				Console.WriteLine("Hata: "+ex.Message);
 			}
-
 		}
+		if(adil&&(Math.Min(imageWidth, imageHeight)<=300)) return -1;
 		return (float)imageWidth/imageHeight;
 	}
 
@@ -61,14 +63,14 @@ public class Upright {
 
 					if((px1==px2)&&(px1!=""||px2!="")) {
 						piksel = px1;
-						float oran = FileRatio(file).Result;
+						float oran = FileRatio(file, false).Result;
 						if(oran<1) {
 							float ara = oran*float.Parse(piksel);
 							piksel = ara.ToString();
 						} else piksel = px1;
 					} else if((px1=="")&&(px2!="")) {
 						piksel = px2;
-						float oran = FileRatio(file).Result;
+						float oran = FileRatio(file, false).Result;
 						float ara = oran*float.Parse(piksel);
 						piksel = ara.ToString();
 					} else piksel = px1;
