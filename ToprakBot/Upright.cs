@@ -8,7 +8,7 @@ public class Upright {
 	public static async Task<float> FileRatio(string file, bool adil) {
 		string apiUrl;
 		if (adil) apiUrl = "https://tr.wikipedia.org/w/api.php?action=query&prop=imageinfo&titles=File:" + file + "&iiprop=dimensions&format=json";
-		else apiUrl = "https://commons.wikimedia.org/w/api.php?action=query&prop=imageinfo&titles=File:"+file+"&iiprop=dimensions&format=json";
+		else apiUrl = "https://commons.wikimedia.org/w/api.php?action=query&prop=imageinfo&titles=File:" + file + "&iiprop=dimensions&format=json";
 
 		int imageHeight = -1, imageWidth = -1;
 

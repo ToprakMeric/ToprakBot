@@ -21,7 +21,7 @@ using System.Drawing;
 public class ToprakBot {
 	public static bool manual = true; //Sayfa listesini false ise API'den, true ise elle eklenmiş dosyadan alır
 	public static bool makine = false; //Nerede çalışlacağına göre dosya konumlarını ayarlar, true ise makinede false ise pc de
-	public static string wiki = "tr.wikipedia";
+	public static string wiki = "test.wikipedia";
 
 	public static async Task Main(string[] args) {
 
@@ -44,9 +44,10 @@ public class ToprakBot {
 		List<string> hatalıkorumaşablist = await korumalist(wiki);
 		if(!manual) titles.AddRange(hatalıkorumaşablist);
 
-		//List<string> wikiliste = await ToprakBot.wikiliste(wiki);
-		//titles.AddRange(wikiliste);
+		List<string> wikiliste = await ToprakBot.wikiliste(wiki);
+		titles.AddRange(wikiliste);
 
+		titles = titles.Distinct().ToList();
 		int n = titles.Count;
 
 		DateTime bugun = DateTime.Today;
@@ -108,17 +109,15 @@ public class ToprakBot {
 
 		//Adil kullanım
 		List<string> liste = await ImageTest.dosyalist();
-		//string[] liste = {"As roma.png"};
 		Regex uzantiregex = new Regex(@"(\.[a-z0-9]{3,4})$", RegexOptions.IgnoreCase);
 		int l = liste.Count, m = -1;
 
-		//string file = "Dosya:Beyaz TV logo.jpeg";
 		foreach(string file in liste) {
 			string dosya = file.Replace ("Dosya:", "");
 			Console.ForegroundColor = ConsoleColor.Yellow;
 			Console.WriteLine(++m+1 + "/" + l + ": " + dosya);
 			Console.ForegroundColor = ConsoleColor.White;
-			string apiUrl = "http://tr.wikipedia.org/wiki/Special:FilePath/" + dosya;
+			string apiUrl = "http://" + wiki + ".org/wiki/Special:FilePath/" + dosya;
 			var falan = uzantiregex.Match(dosya);
 			string uzanti = falan.Groups[1].Value;
 
@@ -136,7 +135,7 @@ public class ToprakBot {
 					Bitmap resizedImage = ImageTest.ResizeImage(imageBytes, newWidth, newHeight);
 
 					string outputPath;
-					if (ToprakBot.makine) outputPath = "C:\\Users\\Administrator\\Desktop\\file\\ResizedImage" + uzanti;
+					if (makine) outputPath = "C:\\Users\\Administrator\\Desktop\\file\\ResizedImage" + uzanti;
 					else outputPath = "D:\\ResizedImage" + uzanti;
 					switch(uzanti.ToLower()) {
 						case ".png":
@@ -171,7 +170,7 @@ public class ToprakBot {
 				} else Console.WriteLine("Adım 2: Şablon bulunamadı.");
 
 				//Eski sürümleri gizle
-				string apiUrl2 = "https://tr.wikipedia.org/w/api.php?action=query&format=json&prop=imageinfo&titles=Dosya:" + dosya + "&formatversion=2&iiprop=archivename&iilimit=max";
+				string apiUrl2 = "https://" + wiki + ".org/w/api.php?action=query&format=json&prop=imageinfo&titles=Dosya:" + dosya + "&formatversion=2&iiprop=archivename&iilimit=max";
 				try {
 					using (HttpClient client = new HttpClient()) {
 						HttpResponseMessage response = await client.GetAsync(apiUrl2);
@@ -237,27 +236,40 @@ public class ToprakBot {
 		}
 		return titles;
 	}
-
-	/* Henüz tamamlanmamış özellik
 	static async Task<List<string>> wikiliste(string wiki) {
 
 		ApiEdit editor = new ApiEdit("https://" + wiki + ".org/w/");
 		login(editor);
-		string sayfa = editor.Open("Kullanıcı:ToprakBot/Liste");
-		string pattern = @"^\*\s*(.*)$";
+		string sayfa = editor.Open("User:ToprakBot/Liste");
+		string pattern = @"^\#\s*(.*)$";
 		MatchCollection matches = Regex.Matches(sayfa, pattern, RegexOptions.Multiline);
 		List<string> titles = new List<string>();
+		int i = 0;
 
 		foreach (Match match in matches) {
-			if (match.Success) {
+			if (match.Success && i < 100) {
 				string title = match.Groups[1].Value.Trim();
-				titles.Add(title);
+				
+				if (title=="Örnek 1") {
+					break;
+				} else {
+					titles.Add(title);
+					i++;
+				}
 			}
 		}
 
+		foreach (string title in titles) {
+			Regex reg = new Regex(@"\#\s*" + Regex.Escape(title) + "(?:\r\n|$)");
+			sayfa = reg.Replace(sayfa, "");
+		}
+		Regex reg2 = new Regex(@"{{/başlık}}[\r\n\s]*");
+		if(reg2.Match(sayfa).Success || i == 0) sayfa = "{{/başlık}}\r\n\r\n# Örnek 1\r\n# Örnek 2\r\n# ...\r\n";
+
+		editor.Save(sayfa, i + " sayfa alındı.", true, WatchOptions.NoChange);
+
 		return titles;
 	}
-	*/
 	
 	static async Task<List<string>> korumalist(string wiki) {
 		List<string> titles = new List<string>();
@@ -333,7 +345,7 @@ public class ToprakBot {
 		summary += tuple3.Item2;
 
 		Regex regex1 = new Regex(@"(\[\[\s*?)([Iıİi]mage|[Ff]ile)(\s*?\:)");
-		if(regex1.Match(ArticleText).Success) ArticleText = regex1.Replace(ArticleText, "$1Dosya$3");
+		//if(regex1.Match(ArticleText).Success) ArticleText = regex1.Replace(ArticleText, "$1Dosya$3");
 
 		Regex regex2 = new Regex(@"\<\s*?references\s*?\/\s*?>");
 		if(regex2.Match(ArticleText).Success) ArticleText = regex2.Replace(ArticleText, "{{kaynakça}}");
@@ -380,14 +392,13 @@ public class ToprakBot {
 		//AWB düzeltmeleri
 		Parsers parser = new Parsers(500, false);
 		ArticleText = Parsers.FixTemperatures(ArticleText);
-		ArticleText = parser.FixNonBreakingSpaces(ArticleText);
+		//ArticleText = parser.FixNonBreakingSpaces(ArticleText); //AWB bug bkz w.wiki/9p6C
 		ArticleText = parser.FixBrParagraphs(ArticleText).Trim();
 		ArticleText = Parsers.FixLinkWhitespace(ArticleText, ArticleTitle);
 		ArticleText = Parsers.FixSyntax(ArticleText);
 		ArticleText = Parsers.FixCategories(ArticleText);
 		ArticleText = Parsers.FixImages(ArticleText);
 		ArticleText = Parsers.SimplifyLinks(ArticleText);
-		//ArticleText = Parsers.FixCitationTemplates(ArticleText);
 		ArticleText = Parsers.FixMainArticle(ArticleText);
 		ArticleText = Parsers.FixReferenceListTags(ArticleText);
 		ArticleText = Parsers.FixEmptyLinksAndTemplates(ArticleText);
@@ -398,10 +409,10 @@ public class ToprakBot {
 		ArticleText = Parsers.SameRefDifferentName(ArticleText);
 		ArticleText = Parsers.RefsAfterPunctuation(ArticleText);
 		ArticleText = Parsers.ReorderReferences(ArticleText);
-		//ArticleText = parser.FixDatesA(ArticleText).Trim();
 		ArticleText = parser.SortMetaData(ArticleText, ArticleTitle);
 		ArticleText = ArticleText.Trim();
-
+		//ArticleText = parser.FixDatesA(ArticleText).Trim();
+		//ArticleText = Parsers.FixCitationTemplates(ArticleText);
 		return new Tuple<string, string>(ArticleText, summary);
 	}
 

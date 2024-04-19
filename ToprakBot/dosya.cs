@@ -18,7 +18,7 @@ using System.Net;
 public class ImageTest {
 	public static async Task<List<string>> dosyalist() {
 		List<string> titles = new List<string>();
-		string apiUrl = "https://tr.wikipedia.org/w/api.php?action=query&format=json&list=categorymembers&formatversion=2&cmtitle=Kategori%3AAdil%20kullan%C4%B1m%20i%C3%A7in%20boyut%20k%C3%BC%C3%A7%C3%BClt%C3%BClmesi%20istenen%20dosyalar&cmprop=title&cmnamespace=6&cmlimit=2";
+		string apiUrl = "https://" + ToprakBot.wiki + ".org/w/api.php?action=query&format=json&list=categorymembers&formatversion=2&cmtitle=Kategori%3AAdil%20kullan%C4%B1m%20i%C3%A7in%20boyut%20k%C3%BC%C3%A7%C3%BClt%C3%BClmesi%20istenen%20dosyalar&cmprop=title&cmnamespace=6&cmlimit=2";
 		try {
 			using (var client = new WebClient()) {
 				client.Encoding = Encoding.UTF8;
