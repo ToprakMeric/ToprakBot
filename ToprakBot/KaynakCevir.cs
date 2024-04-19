@@ -156,7 +156,7 @@ public class KaynakCevir {
 			Regex sayı = new Regex(@"(\d{1,2})(st|nd|rd|th)", RegexOptions.IgnoreCase);
 			basım = sayı.Replace(basım, "$1.");
 
-			return "|basım=" + basım + match.Groups[2].Value;
+			return "|basım=" + basım + match.Groups[4].Value;
 		});
 		return ArticleText;
 	}

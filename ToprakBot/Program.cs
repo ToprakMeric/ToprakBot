@@ -21,7 +21,7 @@ using System.Drawing;
 public class ToprakBot {
 	public static bool manual = true; //Sayfa listesini false ise API'den, true ise elle eklenmiş dosyadan alır
 	public static bool makine = false; //Nerede çalışlacağına göre dosya konumlarını ayarlar, true ise makinede false ise pc de
-	public static string wiki = "tr.wikipedia";
+	public static string wiki = "test.wikipedia";
 
 	public static async Task Main(string[] args) {
 
@@ -241,6 +241,7 @@ public class ToprakBot {
 		ApiEdit editor = new ApiEdit("https://" + wiki + ".org/w/");
 		login(editor);
 		string sayfa = editor.Open("User:ToprakBot/Liste");
+		string bas = sayfa;
 		string pattern = @"^\#\s*(.*)$";
 		MatchCollection matches = Regex.Matches(sayfa, pattern, RegexOptions.Multiline);
 		List<string> titles = new List<string>();
@@ -264,10 +265,12 @@ public class ToprakBot {
 			sayfa = reg.Replace(sayfa, "");
 		}
 		Regex reg2 = new Regex(@"{{/başlık}}[\r\n\s]*");
-		if(reg2.Match(sayfa).Success || i == 0) sayfa = "{{/başlık}}\r\n\r\n# Örnek 1\r\n# Örnek 2\r\n# ...\r\n";
+		if(reg2.Match(sayfa).Success || i == 0 || sayfa == "" || i != 100) sayfa = "{{/başlık}}\r\n\r\n# Örnek 1\r\n# Örnek 2\r\n# ...";
 
+		if (bas == sayfa) Console.ForegroundColor = ConsoleColor.Yellow;
+		else Console.ForegroundColor = ConsoleColor.Green;
 		editor.Save(sayfa, i + " sayfa alındı.", true, WatchOptions.NoChange);
-
+		Console.WriteLine("ToprakBot/Liste: " + i + " sayfa alındı");
 		return titles;
 	}
 	
