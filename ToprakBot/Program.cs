@@ -21,7 +21,7 @@ using System.Drawing;
 public class ToprakBot {
 	public static bool manual = true; //Sayfa listesini false ise API'den, true ise elle eklenmiş dosyadan alır
 	public static bool makine = false; //Nerede çalışlacağına göre dosya konumlarını ayarlar, true ise makinede false ise pc de
-	public static string wiki = "test.wikipedia";
+	public static string wiki = "tr.wikipedia";
 
 	public static async Task Main(string[] args) {
 
@@ -345,7 +345,7 @@ public class ToprakBot {
 		summary += tuple3.Item2;
 
 		Regex regex1 = new Regex(@"(\[\[\s*?)([Iıİi]mage|[Ff]ile)(\s*?\:)");
-		//if(regex1.Match(ArticleText).Success) ArticleText = regex1.Replace(ArticleText, "$1Dosya$3");
+		if(regex1.Match(ArticleText).Success) ArticleText = regex1.Replace(ArticleText, "$1Dosya$3");
 
 		Regex regex2 = new Regex(@"\<\s*?references\s*?\/\s*?>");
 		if(regex2.Match(ArticleText).Success) ArticleText = regex2.Replace(ArticleText, "{{kaynakça}}");
