@@ -12,16 +12,14 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using System.Net.Http;
 using System.Net;
-using System.Web;
 using System.Linq;
 using System.Text;
-using static System.Net.Mime.MediaTypeNames;
 using System.Drawing;
 
 public class ToprakBot {
 	public static bool manual = true; //Sayfa listesini false ise API'den, true ise elle eklenmiş dosyadan alır
 	public static bool makine = false; //Nerede çalışlacağına göre dosya konumlarını ayarlar, true ise makinede false ise pc de
-	public static string wiki = "test.wikipedia";
+	public static string wiki = "tr.wikipedia";
 
 	public static async Task Main(string[] args) {
 
@@ -308,24 +306,7 @@ public class ToprakBot {
 	static public Tuple<string, string> Edit(string ArticleText, string ArticleTitle) {
 		string summary = "";
 
-		//Full capital başlık dz - Henüz tamamlanmamış özellik
-		/* 
-		List<string> sablonlar = Parsers.GetAllTemplateDetail(ArticleText);
-		Regex kaynakbaslik = new Regex(@"(\{\{\s*?(?:[\p{L}]*? kaynağı|[Kk]aynak\s*?\||[Cc]ite [\p{L}]?).*?\|\s*?(?:başlık|title)\s*?\=[^\p{L}]*)([\p{Lu}\W\d]*?)([^\p{L}]*(?:\||\}\}))");
-		Regex sablonicisablon = new Regex(@"\{\{([^{}]*\{\{[^{}]*\}\}[^{}]*)*\}\}");
-		foreach(string sablon in sablonlar) {
-			//Console.WriteLine(sablon);
-			if (kaynakbaslik.Match(sablon).Success&&!sablonicisablon.Match(sablon).Success) {
-				//Console.WriteLine("ok");
-				var hmmm = kaynakbaslik.Match(sablon);
-				string başlık = hmmm.Groups[2].Value;
-				başlık = Baslik.Main(başlık);
-				string yenisablon = kaynakbaslik.Replace(sablon, "$1" + başlık + "$3");
-				ArticleText = ArticleText.Replace(sablon, yenisablon);
-			}
-			//Console.WriteLine("---");
-		}
-		*/
+		ArticleText = Baslik.Main(ArticleText);
 
 		ArticleText = Upright.Main(ArticleText);
 
@@ -395,7 +376,6 @@ public class ToprakBot {
 		//AWB düzeltmeleri
 		Parsers parser = new Parsers(500, false);
 		ArticleText = Parsers.FixTemperatures(ArticleText);
-		//ArticleText = parser.FixNonBreakingSpaces(ArticleText); //AWB bug bkz w.wiki/9p6C
 		ArticleText = parser.FixBrParagraphs(ArticleText).Trim();
 		ArticleText = Parsers.FixLinkWhitespace(ArticleText, ArticleTitle);
 		ArticleText = Parsers.FixSyntax(ArticleText);
@@ -414,8 +394,10 @@ public class ToprakBot {
 		ArticleText = Parsers.ReorderReferences(ArticleText);
 		ArticleText = parser.SortMetaData(ArticleText, ArticleTitle);
 		ArticleText = ArticleText.Trim();
+		//ArticleText = parser.FixNonBreakingSpaces(ArticleText); //AWB bug bkz w.wiki/9p6C
 		//ArticleText = parser.FixDatesA(ArticleText).Trim();
 		//ArticleText = Parsers.FixCitationTemplates(ArticleText);
+		
 		return new Tuple<string, string>(ArticleText, summary);
 	}
 
