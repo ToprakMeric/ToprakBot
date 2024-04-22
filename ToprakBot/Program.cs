@@ -14,7 +14,6 @@ using System.Net.Http;
 using System.Net;
 using System.Linq;
 using System.Text;
-using System.Drawing;
 
 public class ToprakBot {
 	public static bool manual = true; //Sayfa listesini false ise API'den, true ise elle eklenmiş dosyadan alır
@@ -90,7 +89,7 @@ public class ToprakBot {
 				}
 			}
 
-			if(ArticleText==madde) {
+			if (ArticleText == madde) {
 				if(NameSpace!=0) Console.ForegroundColor = ConsoleColor.Yellow;
 				else Console.ForegroundColor = ConsoleColor.Red;
 			} else {
@@ -105,112 +104,13 @@ public class ToprakBot {
 		foreach(var item in loglist) sw.WriteLine(item);
 		sw.Close();
 
-		//Adil kullanım
-		List<string> liste = await ImageTest.dosyalist();
-		Regex uzantiregex = new Regex(@"(\.[a-z0-9]{3,4})$", RegexOptions.IgnoreCase);
-		int l = liste.Count, m = -1;
+		await ImageTest.AK(); //Adil kullanım
 
-		foreach(string file in liste) {
-			string dosya = file.Replace ("Dosya:", "");
-			Console.ForegroundColor = ConsoleColor.Yellow;
-			Console.WriteLine(++m+1 + "/" + l + ": " + dosya);
-			Console.ForegroundColor = ConsoleColor.White;
-			string apiUrl = "http://" + wiki + ".org/wiki/Special:FilePath/" + dosya;
-			var falan = uzantiregex.Match(dosya);
-			string uzanti = falan.Groups[1].Value;
-
-			string[] allowedExtensions = { ".png", ".jpg", ".jpeg", ".gif", ".tiff" };
-			if (allowedExtensions.Contains(uzanti.ToLower())) {
-				//Dosyayı indir
-				byte[] imageBytes = await ImageTest.DownloadImage(apiUrl);
-
-				//Dosyayı ufalt ve yükle
-				float oran = Upright.FileRatio(dosya, true).Result;
-				Console.WriteLine("Oran:" + oran);
-				if(oran!=-1) {
-					int newWidth = 300;
-					int newHeight = (int)(300 / oran);
-					Bitmap resizedImage = ImageTest.ResizeImage(imageBytes, newWidth, newHeight);
-
-					string outputPath;
-					if (makine) outputPath = "C:\\Users\\Administrator\\Desktop\\file\\ResizedImage" + uzanti;
-					else outputPath = "D:\\ResizedImage" + uzanti;
-					switch(uzanti.ToLower()) {
-						case ".png":
-							resizedImage.Save(outputPath, System.Drawing.Imaging.ImageFormat.Png);
-							break;
-						case ".jpg":
-						case ".jpeg":
-							resizedImage.Save(outputPath, System.Drawing.Imaging.ImageFormat.Jpeg);
-							break;
-						case ".gif":
-							resizedImage.Save(outputPath, System.Drawing.Imaging.ImageFormat.Gif);
-							break;
-						case ".tiff":
-							resizedImage.Save(outputPath, System.Drawing.Imaging.ImageFormat.Tiff);
-							break;
-					}
-
-					Console.WriteLine("Adım 1: Resim başarıyla boyutlandırıldı ve kaydedildi.");
-
-					ImageTest.PythonUpload(dosya, uzanti);
-
-				} else Console.WriteLine("Adım 1: Görsel zaten küçük.");
-
-				//{{Adil kullanım kalitesini düşür}} kaldır
-				string ArticleText = editor.Open("Dosya:" + dosya);
-
-				Regex dusursablon = new Regex(@"\{\{\s*?(adil kullanım kalitesini düşür|non-free reduce)(\|.*?|\s*?)\}\}\n*", RegexOptions.IgnoreCase);
-				if(dusursablon.Match(ArticleText).Success) {
-					ArticleText = dusursablon.Replace(ArticleText, "");
-					Console.WriteLine("Adım 2: Bakım şablonu kaldırıldı.");
-					editor.Save(ArticleText, "Adil kullanım kalitesini düşür bakım şablonu kaldırıldı.", true, WatchOptions.NoChange);
-				} else Console.WriteLine("Adım 2: Şablon bulunamadı.");
-
-				//Eski sürümleri gizle
-				string apiUrl2 = "https://" + wiki + ".org/w/api.php?action=query&format=json&prop=imageinfo&titles=Dosya:" + dosya + "&formatversion=2&iiprop=archivename&iilimit=max";
-				try {
-					using (HttpClient client = new HttpClient()) {
-						HttpResponseMessage response = await client.GetAsync(apiUrl2);
-
-						if (response.IsSuccessStatusCode) {
-							string json = await response.Content.ReadAsStringAsync();
-
-							JObject responseObject = JObject.Parse(json);
-
-							JArray imageInfo = responseObject["query"]["pages"][0]["imageinfo"] as JArray;
-
-							int ii = 0;
-							foreach (JToken info in imageInfo) {
-								string archivename = info["archivename"]?.ToString();
-								if (!string.IsNullOrEmpty(archivename)) ii++;
-							}
-							if (ii==0) Console.WriteLine("Adım 3: Gizlenecek sürüm bulunamadı.");
-							else {
-								Console.WriteLine("Adım 3: Sürümler gizleniyor.");
-								foreach (JToken info in imageInfo) {
-									ii++;
-									string archivename = info["archivename"]?.ToString();
-									if (!string.IsNullOrEmpty(archivename)) {
-										string timestamp = archivename.Split('!')[0];
-										ImageTest.PythonRevDel(dosya, timestamp);
-										Console.WriteLine(ii + ": " + timestamp + " gizlendi.");
-									}
-								}
-							}
-						}
-					}
-				}
-				catch (Exception ex) {
-					Console.WriteLine("Exception: " + ex.Message);
-				}
-			 } else Console.WriteLine("Bilinmeyen uzantı.");
-		}
 		Console.WriteLine("Bitti.");
 		Console.ReadKey();
 	}
 
-	static void login(ApiEdit editor) {
+	static public void login(ApiEdit editor) {
 		string password;
 		if(!makine) password = File.ReadAllText("D:\\AWB\\password.txt");
 		else password = File.ReadAllText("C:\\Users\\Administrator\\Desktop\\password.txt");
@@ -218,6 +118,7 @@ public class ToprakBot {
 
 	return;
 	}
+
 	static async Task<List<string>> TitleList(string wiki) {
 		List<string> titles = new List<string>();
 		for(int i=-1;i<1;i++) {
