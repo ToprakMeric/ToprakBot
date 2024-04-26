@@ -165,7 +165,6 @@ public class ImageTest {
 	}
 
 	public static void PythonUpload(string file, string uzanti) {
-
 		string pythonScriptPath;
 		if (ToprakBot.makine) pythonScriptPath = @"C:\Users\Administrator\Desktop\test.py";
 		else pythonScriptPath = @"D:\\upload\\main.py";
@@ -179,7 +178,7 @@ public class ImageTest {
 		start.RedirectStandardOutput = true;
 
 		using (Process process = Process.Start(start)) {
-			using (System.IO.StreamReader reader = process.StandardOutput) {
+			using (StreamReader reader = process.StandardOutput) {
 				string result = reader.ReadToEnd();
 				Console.WriteLine(result);
 			}
@@ -189,7 +188,6 @@ public class ImageTest {
 	}
 
 	public static void PythonRevDel(string file, string id) {
-
 		string pythonScriptPath;
 		if (ToprakBot.makine) pythonScriptPath = @"C:\Users\Administrator\Desktop\test.py";
 		else pythonScriptPath = @"D:\\upload\\main.py";
