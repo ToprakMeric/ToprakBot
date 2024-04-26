@@ -97,6 +97,7 @@ public class ImageTest {
 								string archivename = info["archivename"]?.ToString();
 								if (!string.IsNullOrEmpty(archivename)) ii++;
 							}
+
 							if (ii==0) Console.WriteLine("Adım 3: Gizlenecek sürüm bulunamadı.");
 							else {
 								Console.WriteLine("Adım 3: Sürümler gizleniyor.");
