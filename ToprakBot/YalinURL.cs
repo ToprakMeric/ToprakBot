@@ -14,7 +14,7 @@ public class YalinURL {
 
 		if((bos!=0)&&!(sablonkontrol.Match(ArticleText).Success)&&(yalinurl.Match(ArticleText).Success)) {
 			if(bos>=3) ArticleText = "{{Yalın URL'leri temizle|tarih={{yk:CURRENTMONTHNAME}} {{yk:CURRENTYEAR}}}}\n" + ArticleText;
-			else ArticleText = satirici.Replace(ArticleText, "$1$2 {{Satır içi yalın URL}}$3");
+			else ArticleText = satirici.Replace(ArticleText, "$1$2 {{Satır içi yalın URL|tarih={{yk:CURRENTMONTHNAME}} {{yk:CURRENTYEAR}}}}$3");
 			summary += "; yalın URL bakım şablonu eklendi";
 		}
 		return new Tuple<string, string>(ArticleText, summary);
