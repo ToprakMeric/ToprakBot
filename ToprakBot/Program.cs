@@ -16,11 +16,94 @@ using System.Linq;
 using System.Text;
 
 public class ToprakBot {
-	public static bool manual = true; //Sayfa listesini false ise API'den, true ise elle eklenmiş dosyadan alır
+	public static bool manual = false; //Sayfa listesini false ise API'den, true ise elle eklenmiş dosyadan alır
 	public static bool makine = false; //Nerede çalışlacağına göre dosya konumlarını ayarlar, true ise makinede false ise pc de
-	public static string wiki = "tr.wikipedia";
+	public static string wiki = "tr.wikipedia"; //bazen test wikide çalıştırıyorum
+	public static string wiki2 = "az.wikipedia";
 
 	public static async Task Main(string[] args) {
+		Console.ForegroundColor = ConsoleColor.White;
+		Console.WriteLine("trwiki");
+		await trwiki();		// trwiki madde dz
+		await ImageTest.AK();	// trwiki adil kullanım dosya dz
+
+		Console.ForegroundColor = ConsoleColor.White;
+		Console.WriteLine("------\nazwiki");
+		await azwiki();			// azwiki madde dz
+
+		Console.ForegroundColor = ConsoleColor.White;
+		Console.WriteLine("Bitti.");
+		Console.ReadKey();
+	}
+
+	public static async Task azwiki() {
+		ApiEdit editor = new ApiEdit("https://" + wiki2 + ".org/w/");
+		login(editor);
+
+		List<string> titles;
+		if(!manual) titles = await TitleList(wiki2);
+		else {
+			StreamReader reader;
+			if(!makine) reader = new StreamReader("D:\\AWB\\liste.txt");
+			else reader = new StreamReader("C:\\Users\\Administrator\\Desktop\\liste.txt");
+
+			using(reader) {
+				titles = new List<string>();
+				string line;
+				while((line=reader.ReadLine())!=null) titles.Add(line);
+			}
+		}
+		List<string> wikiliste = await ToprakBot.wikiliste(wiki2);
+		titles.AddRange(wikiliste);
+
+		titles = titles.Distinct().ToList();
+		int n = titles.Count;
+
+		DateTime bugun = DateTime.Today;
+		string bugunformat = bugun.ToString("yyyy-MM-dd");
+		string filePath;
+		if(!makine) filePath = @"D:\AWB\log\az\" + bugunformat + ".txt";
+		else filePath = @"C:\Users\Administrator\Desktop\log\az\" + bugunformat + ".txt";
+		StreamWriter sw = File.AppendText(filePath);
+
+		WikiRegexes.RenamedTemplateParameters = Parsers.LoadRenamedTemplateParameters(editor.Open("Project:AutoWikiBrowser/Rename template parameters"));
+		WikiRegexes.TemplateRedirects = Parsers.LoadTemplateRedirects(editor.Open("Project:AutoWikiBrowser/Template redirects"));
+
+		var loglist = new List<string>();
+
+		var türlü = new ToprakBot();
+		int i = -1;
+		foreach(string sayfa in titles) {
+			i++;
+			string ArticleText = "", madde = "", ekozet = "";
+			int NameSpace = türlü.NameSpaceDedector(sayfa);
+			ArticleText = editor.Open(sayfa); //içeriği alıyor
+			madde = ArticleText;
+
+			Regex degistirmemeli = new Regex(@"\{\{\s*?(sil|[İi]ş gedir)\s*?(\||\}\})", RegexOptions.IgnoreCase);
+			if((!degistirmemeli.Match(ArticleText).Success)&&(NameSpace == 0)) { //Sadece ana ad alanı, diğer ad alanı kodları için bkz VP:İA
+				var tuple = azedit(ArticleText, sayfa);
+				ArticleText = tuple.Item1;
+				ekozet = tuple.Item2;
+			}
+
+			if (ArticleText == madde) {
+				if(NameSpace!=0) Console.ForegroundColor = ConsoleColor.Yellow;
+				else Console.ForegroundColor = ConsoleColor.Red;
+			} else {
+				string summary = "" + ekozet;
+				Console.ForegroundColor = ConsoleColor.Green;
+				loglist.Add(sayfa);
+				editor.Save(ArticleText, summary, true, WatchOptions.NoChange);
+			}
+			Console.WriteLine(i+1 + "/" + n + ":\t" + sayfa + "\t");
+		}
+
+		foreach(var item in loglist) sw.WriteLine(item);
+		sw.Close();
+	}
+
+	public static async Task trwiki() {
 
 		ApiEdit editor = new ApiEdit("https://" + wiki + ".org/w/");
 		login(editor);
@@ -50,8 +133,8 @@ public class ToprakBot {
 		DateTime bugun = DateTime.Today;
 		string bugunformat = bugun.ToString("yyyy-MM-dd");
 		string filePath;
-		if(!makine) filePath = @"D:\AWB\log\" + bugunformat + ".txt";
-		else filePath = @"C:\Users\Administrator\Desktop\log\" + bugunformat + ".txt";
+		if(!makine) filePath = @"D:\AWB\log\tr\" + bugunformat + ".txt";
+		else filePath = @"C:\Users\Administrator\Desktop\log\tr\" + bugunformat + ".txt";
 		StreamWriter sw = File.AppendText(filePath);
 
 		WikiRegexes.RenamedTemplateParameters = Parsers.LoadRenamedTemplateParameters(editor.Open("Project:AutoWikiBrowser/Rename template parameters"));
@@ -70,7 +153,7 @@ public class ToprakBot {
 
 			Regex degistirmemeli = new Regex(@"\{\{\s*?(sil|çalışma|bekletmeli sil)\s*?(\||\}\})", RegexOptions.IgnoreCase);
 			if((!degistirmemeli.Match(ArticleText).Success)&&(NameSpace == 0)) { //Sadece ana ad alanı, diğer ad alanı kodları için bkz VP:İA
-				var tuple = Edit(ArticleText, sayfa);
+				var tuple = tredit(ArticleText, sayfa);
 				ArticleText = tuple.Item1;
 				ekozet = tuple.Item2;
 			}
@@ -103,11 +186,6 @@ public class ToprakBot {
 
 		foreach(var item in loglist) sw.WriteLine(item);
 		sw.Close();
-
-		await ImageTest.AK(); //Adil kullanım
-
-		Console.WriteLine("Bitti.");
-		Console.ReadKey();
 	}
 
 	static public void login(ApiEdit editor) {
@@ -204,14 +282,14 @@ public class ToprakBot {
 		}
 	}
 
-	static public Tuple<string, string> Edit(string ArticleText, string ArticleTitle) {
+	static public Tuple<string, string> tredit(string ArticleText, string ArticleTitle) {
 		string summary = "";
 
 		ArticleText = Baslik.Main(ArticleText);
 
 		ArticleText = Upright.Main(ArticleText);
 
-		var tuple = Kaynakca.Main(ArticleText);
+		var tuple = Kaynakca.Tr(ArticleText);
 		ArticleText = tuple.Item1;
 		summary += tuple.Item2;
 
@@ -225,7 +303,7 @@ public class ToprakBot {
 		ArticleText = tuple2.Item1;
 		summary += tuple2.Item2;
 
-		var tuple3 = GorunmezKarakter.Main(ArticleText, ArticleTitle);
+		var tuple3 = GorunmezKarakter.Main(ArticleText, ArticleTitle, "tr");
 		ArticleText = tuple3.Item1;
 		summary += tuple3.Item2;
 
@@ -299,6 +377,48 @@ public class ToprakBot {
 		//ArticleText = parser.FixDatesA(ArticleText).Trim();
 		//ArticleText = Parsers.FixCitationTemplates(ArticleText);
 		
+		return new Tuple<string, string>(ArticleText, summary);
+	}
+
+	static public Tuple<string, string> azedit(string ArticleText, string ArticleTitle) {
+		string summary = "";
+
+		var tuple = Kaynakca.Az(ArticleText);
+		ArticleText = tuple.Item1;
+		summary += tuple.Item2;
+
+		var tuple3 = GorunmezKarakter.Main(ArticleText, ArticleTitle, "az");
+		ArticleText = tuple3.Item1;
+		summary += tuple3.Item2;
+
+		ArticleText = Parsers.TemplateRedirects(ArticleText, WikiRegexes.TemplateRedirects);
+		ArticleText = Parsers.RenameTemplateParameters(ArticleText, WikiRegexes.RenamedTemplateParameters);
+
+		//AWB düzeltmeleri
+		Parsers parser = new Parsers(500, false);
+		ArticleText = Parsers.FixTemperatures(ArticleText);
+		ArticleText = parser.FixBrParagraphs(ArticleText).Trim();
+		ArticleText = Parsers.FixLinkWhitespace(ArticleText, ArticleTitle);
+		ArticleText = Parsers.FixSyntax(ArticleText);
+		ArticleText = Parsers.FixCategories(ArticleText);
+		ArticleText = Parsers.FixImages(ArticleText);
+		ArticleText = Parsers.SimplifyLinks(ArticleText);
+		ArticleText = Parsers.FixMainArticle(ArticleText);
+		ArticleText = Parsers.FixReferenceListTags(ArticleText);
+		ArticleText = Parsers.FixEmptyLinksAndTemplates(ArticleText);
+		ArticleText = Parsers.SimplifyReferenceTags(ArticleText);
+		ArticleText = Parsers.FixReferenceTags(ArticleText);
+		ArticleText = Parsers.DuplicateNamedReferences(ArticleText);
+		ArticleText = Parsers.DuplicateUnnamedReferences(ArticleText);
+		ArticleText = Parsers.SameRefDifferentName(ArticleText);
+		ArticleText = Parsers.RefsAfterPunctuation(ArticleText);
+		ArticleText = Parsers.ReorderReferences(ArticleText);
+		ArticleText = parser.SortMetaData(ArticleText, ArticleTitle);
+		ArticleText = ArticleText.Trim();
+		//ArticleText = parser.FixNonBreakingSpaces(ArticleText); //AWB bug bkz w.wiki/9p6C
+		//ArticleText = parser.FixDatesA(ArticleText).Trim();
+		//ArticleText = Parsers.FixCitationTemplates(ArticleText);
+
 		return new Tuple<string, string>(ArticleText, summary);
 	}
 

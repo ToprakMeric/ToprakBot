@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 public class GorunmezKarakter {
-	public static Tuple<string, string> Main(string ArticleText, string ArticleTitle) {
+	public static Tuple<string, string> Main(string ArticleText, string ArticleTitle, string lang) {
 		string summary = "";
 
 		List<string> karakterler = new List<string>();
@@ -177,11 +177,13 @@ public class GorunmezKarakter {
 
 		if(str!="") {
 			str = str.Remove(str.Length-2);
-			summary += "; Görünmez karakterler fark edilebilir kılındı: " + str;
+			summary += lang == "tr" ? "; Görünmez karakterler fark edilebilir kılındı: " + str:
+					   lang == "az" ? "; Görünməz boşluqlar görünür edildi: " + str : "";
 		}
 		if(!(str2=="")) {
 			str2 = str2.Remove(str2.Length-2);
-			summary += "; Gereksiz görünmez karakterler kaldırıldı: " + str2;
+			summary += lang == "tr" ? "; Gereksiz görünmez karakterler kaldırıldı: " + str2:
+					   lang == "az" ? "; Lazımsız görünməz boşluqlar silindi: " + str2 : "";
 		}
 
 		return new Tuple<string, string>(ArticleText, summary);
