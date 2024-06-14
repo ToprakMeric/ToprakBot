@@ -16,7 +16,7 @@ using System.Linq;
 using System.Text;
 
 public class ToprakBot {
-	public static bool manual = false; //Sayfa listesini false ise API'den, true ise elle eklenmiş dosyadan alır
+	public static bool manual = true; //Sayfa listesini false ise API'den, true ise elle eklenmiş dosyadan alır
 	public static bool makine = false; //Nerede çalışlacağına göre dosya konumlarını ayarlar, true ise makinede false ise pc de
 	public static string wiki = "tr.wikipedia"; //bazen test wikide çalıştırıyorum
 	public static string wiki2 = "az.wikipedia";
@@ -42,17 +42,8 @@ public class ToprakBot {
 
 		List<string> titles;
 		if(!manual) titles = await TitleList(wiki2);
-		else {
-			StreamReader reader;
-			if(!makine) reader = new StreamReader("D:\\AWB\\liste.txt");
-			else reader = new StreamReader("C:\\Users\\Administrator\\Desktop\\liste.txt");
+		else titles = new List<string>();
 
-			using(reader) {
-				titles = new List<string>();
-				string line;
-				while((line=reader.ReadLine())!=null) titles.Add(line);
-			}
-		}
 		List<string> wikiliste = await ToprakBot.wikiliste(wiki2);
 		titles.AddRange(wikiliste);
 
