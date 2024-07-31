@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 public class YalinURL {
@@ -12,10 +13,10 @@ public class YalinURL {
 
 		foreach(Match match in yalinurl.Matches(ArticleText)) bos++;
 
-		DateTime utcNow = DateTime.UtcNow;
+		CultureInfo ci = new CultureInfo("tr-TR");
 		if((bos!=0)&&!(sablonkontrol.Match(ArticleText).Success)&&(yalinurl.Match(ArticleText).Success)) {
-			if(bos>=3) ArticleText = "{{Yalın URL'leri temizle|tarih=" + utcNow.Month + " " + utcNow.Year + "}}\n" + ArticleText;
-			else ArticleText = satirici.Replace(ArticleText, "$1$2 {{Satır içi yalın URL|tarih=" + utcNow.Month + " " + utcNow.Year + "}}$3");
+			if(bos>=3) ArticleText = "{{Yalın URL'leri temizle|tarih=" + DateTime.UtcNow.ToString("MMMM yyyy", ci) + "}}\n" + ArticleText;
+			else ArticleText = satirici.Replace(ArticleText, "$1$2 {{Satır içi yalın URL|tarih=" + DateTime.UtcNow.ToString("MMMM yyyy", ci) + "}}$3");
 			summary += "; yalın URL bakım şablonu eklendi";
 		}
 		return new Tuple<string, string>(ArticleText, summary);

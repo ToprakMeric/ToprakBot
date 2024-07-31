@@ -2,7 +2,8 @@
 using System.Text.RegularExpressions;
 
 public class Kaynakca {
-	public static Tuple<string, string> Tr(string ArticleText) { //tr
+	//tr
+	public static Tuple<string, string> Tr(string ArticleText) {
 		string summary = "";
 
 		Match kat = Regex.Match(ArticleText, @"\[\[[KkCc]ategor[yi]\s*?:");
@@ -15,8 +16,8 @@ public class Kaynakca {
 		Regex four = new Regex(@"{{\s*reflist", RegexOptions.IgnoreCase);
 		Regex five = new Regex(@"==\s*[Kk]aynaklar\s*==", RegexOptions.IgnoreCase);
 
-		Regex six = new Regex(@"\=\=\s*Kaynakça\s*\=\=\r\n\[\[(Kategori|Category)\:\s*", RegexOptions.Singleline);
-		Regex seven = new Regex(@"\=\=\s*Kaynakça\s*\=\=\r\n\r\n\[\[(Kategori|Category)\:\s*", RegexOptions.Singleline);
+		Regex six = new Regex(@"\={2,}\s*(?:Kaynakça|Kaynaklar)\s*\={2,}(?:\r\n){1,}\[\[(Kategori|Category)\:\s*", RegexOptions.Singleline);
+		Regex seven = new Regex(@"\={2,}\s*(?:Kaynakça|Kaynaklar)\s*\={2,}(?:\n)*?\={2,}.*?\={2,}", RegexOptions.Singleline);
 
 		Regex eight = new Regex(@"\{\{\s*([Kk]aynakça|[Rr]eflist|[Rr]eferences|[Rr]eference|[Kk]aynak listesi|[Rr]eferanslar|[Rr]efs)\s*(\||\}\})");
 		Regex nine = new Regex(@"<\s*references\s*(\/|)\s*\>");
@@ -33,13 +34,9 @@ public class Kaynakca {
 					summary += "; kaynakça başlığı ekleniyor";
 				}
 
-				if(six.Match(ArticleText).Success) {
-					Regex R1 = new Regex(@"\=\=\s*Kaynakça\s*\=\=");
-					ArticleText = R1.Replace(ArticleText, "== Kaynakça ==\r\n{{kaynakça}}\n");
-					summary += "; kaynakça şablonu ekleniyor";
-				} else if(seven.Match(ArticleText).Success) {
-					Regex R2 = new Regex(@"\=\=\s*Kaynakça\s*\=\=");
-					ArticleText = R2.Replace(ArticleText, "== Kaynakça ==\r\n{{kaynakça}}");
+				if(six.Match(ArticleText).Success||seven.Match(ArticleText).Success) {
+					Regex R1 = new Regex(@"\={2,}\s*(?:Kaynakça|Kaynaklar)\s*\={2,}", RegexOptions.IgnoreCase);
+					ArticleText = R1.Replace(ArticleText, "== Kaynakça ==\r\n{{kaynakça}}");
 					summary += "; kaynakça şablonu ekleniyor";
 				}
 
@@ -50,7 +47,8 @@ public class Kaynakca {
 		return new Tuple<string, string>(ArticleText, summary);
 	}
 
-	public static Tuple<string, string> Az(string ArticleText) { //az
+	//az
+	public static Tuple<string, string> Az(string ArticleText) {
 		string summary = "";
 
 		Match kat = Regex.Match(ArticleText, @"\[\[(?:[Cc]ategory|[Kk]ateqoriya)\s*?:");
