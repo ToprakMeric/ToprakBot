@@ -140,7 +140,6 @@ public class Trwiki {
 		else filePath = @"C:\Users\Administrator\Desktop\log\tr\" + bugunformat + ".txt";
 		StreamWriter sw = File.AppendText(filePath);
 
-		//Yapılacak değişiklikler
 		WikiRegexes.RenamedTemplateParameters = Parsers.LoadRenamedTemplateParameters(editor.Open("Project:AutoWikiBrowser/Rename template parameters"));
 		WikiRegexes.TemplateRedirects = Parsers.LoadTemplateRedirects(editor.Open("Project:AutoWikiBrowser/Template redirects"));
 
@@ -157,6 +156,8 @@ public class Trwiki {
 
 			Regex degistirmemeli = new Regex(@"\{\{\s*?(sil|çalışma|bekletmeli sil)\s*?(\||\}\})", RegexOptions.IgnoreCase);
 			if((!degistirmemeli.Match(ArticleText).Success)&&(NameSpace == 0)) { //Sadece ana ad alanı, diğer ad alanı kodları için bkz VP:İA
+				
+				//Yapılacak değişiklikler
 				ArticleText = Upright.Main(ArticleText);
 
 				var tuple = Kaynakca.Tr(ArticleText);
@@ -166,6 +167,13 @@ public class Trwiki {
 				var tuple4 = NotListesi.Main(ArticleText);
 				ArticleText = tuple4.Item1;
 				ekozet += tuple4.Item2;
+
+				Regex regex4 = new Regex(@"\|(ölüurl|ölü-url|bozukurl|bozukURL|deadurl|dead-url|url-status|urlstatus)\s*=\s*(no|live)");
+				if(regex4.Match(ArticleText).Success) ArticleText = regex4.Replace(ArticleText, "|ölüurl=hayır");
+
+				Regex regex5 = new Regex(@"\|\s*(ölüurl|ölü-url|bozukurl|bozukURL|deadurl|dead-url|url-status|urlstatus)\s*=\s*(yes|dead)");
+				if(regex5.Match(ArticleText).Success) ArticleText = regex5.Replace(ArticleText, "|ölüurl=evet");
+
 			}
 
 			if (ArticleText == madde) {

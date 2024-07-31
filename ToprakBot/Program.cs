@@ -24,17 +24,17 @@ public class ToprakBot {
 	//Giriş: kod çalışmaya buradan başlıyor.
 	public static async Task Main(string[] args) {
 		Console.ForegroundColor = ConsoleColor.White;
-		//Console.WriteLine("trwiki");
-		//await Trwiki.trwiki();		// trwiki madde dz
-		//await ImageTest.AK();	// trwiki adil kullanım dosya dz
+		Console.WriteLine("trwiki");
+		await Trwiki.trwiki();		// trwiki madde dz
+		await ImageTest.AK();	// trwiki adil kullanım dosya dz
 
 		Console.ForegroundColor = ConsoleColor.White;
 		Console.WriteLine("------\ntrwiki 5k");
 		await Trwiki.trwiki5k();
 
-		//Console.ForegroundColor = ConsoleColor.White;
-		//Console.WriteLine("------\nazwiki");
-		//await azwiki();			// azwiki madde dz
+		Console.ForegroundColor = ConsoleColor.White;
+		Console.WriteLine("------\nazwiki");
+		await Azwiki.azwiki();			// azwiki madde dz
 
 		Console.ForegroundColor = ConsoleColor.White;
 		Console.WriteLine("Bitti.");
