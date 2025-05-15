@@ -12,6 +12,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.NetworkInformation;
 
 public class ImageTest {
 	public async static Task AK() {
@@ -122,8 +123,9 @@ public class ImageTest {
 	}
 
 	public static async Task<List<string>> dosyalist() {
+		int gunlukdosyalimit = 10; //günlük ele alınacak max dosya
 		List<string> titles = new List<string>();
-		string apiUrl = "https://" + ToprakBot.wiki + ".org/w/api.php?action=query&format=json&list=categorymembers&formatversion=2&cmtitle=Kategori%3AAdil%20kullan%C4%B1m%20i%C3%A7in%20boyut%20k%C3%BC%C3%A7%C3%BClt%C3%BClmesi%20istenen%20dosyalar&cmprop=title&cmnamespace=6&cmlimit=2";
+		string apiUrl = "https://" + ToprakBot.wiki + ".org/w/api.php?action=query&format=json&list=categorymembers&formatversion=2&cmtitle=Kategori%3AAdil%20kullan%C4%B1m%20i%C3%A7in%20boyut%20k%C3%BC%C3%A7%C3%BClt%C3%BClmesi%20istenen%20dosyalar&cmprop=title&cmnamespace=6&cmlimit=" + (++gunlukdosyalimit);
 		try {
 			using (var client = new WebClient()) {
 				client.Encoding = Encoding.UTF8;
