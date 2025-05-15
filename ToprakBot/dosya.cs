@@ -27,7 +27,7 @@ public class ImageTest {
 			Console.ForegroundColor = ConsoleColor.Yellow;
 			Console.WriteLine(++m+1 + "/" + l + ": " + dosya);
 			Console.ForegroundColor = ConsoleColor.White;
-			string apiUrl = "http://" + ToprakBot.wiki + ".org/wiki/Special:FilePath/" + dosya;
+			string apiUrl = "http://" + ToprakBot.wiki + ".org/wiki/Special:FilePath/" + WebUtility.UrlEncode(dosya).Replace("+", "_");
 			var falan = uzantiregex.Match(dosya);
 			string uzanti = falan.Groups[1].Value;
 
@@ -196,7 +196,8 @@ public class ImageTest {
 		string arguments = file.Replace(" ", "_") + " " + id + " revdel " + b;
 
 		ProcessStartInfo start = new ProcessStartInfo();
-		start.FileName = "python";
+		if(ToprakBot.makine) start.FileName = "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python310\\python.exe";
+		else start.FileName = "python";
 		start.Arguments = $"{pythonScriptPath} {arguments}";
 		start.UseShellExecute = false;
 		start.RedirectStandardOutput = true;

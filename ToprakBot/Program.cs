@@ -14,27 +14,30 @@ using System.Net.Http;
 using System.Net;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 
 public class ToprakBot {
-	public static bool manual = true; //Sayfa listesini false ise API'den, true ise elle eklenmiş dosyadan alır
-	public static bool makine = false; //Nerede çalışlacağına göre dosya konumlarını ayarlar, true ise makinede false ise pc de
-	public static string wiki = "tr.wikipedia"; //bazen test wikide çalıştırıyorum
+	public static bool manual = false; //Sayfa listesini false ise API'den, true ise txt dosyadan alır
+	public static bool makine = true; //Çalıştığı yere göre dosya konumlarını seçer, true ise makine false ise pc konumları
+	public static string wiki = "tr.wikipedia";
 	public static string wiki2 = "az.wikipedia";
 
 	//Giriş: kod çalışmaya buradan başlıyor.
 	public static async Task Main(string[] args) {
+		//trwiki
 		Console.ForegroundColor = ConsoleColor.White;
 		Console.WriteLine("trwiki");
-		await Trwiki.trwiki();		// trwiki madde dz
-		await ImageTest.AK();	// trwiki adil kullanım dosya dz
+		await Trwiki.trwiki();	// yeni madde dz
+		await ImageTest.AK();	// adil kullanım dosya dz
 
 		Console.ForegroundColor = ConsoleColor.White;
-		Console.WriteLine("------\ntrwiki 5k");
-		await Trwiki.trwiki5k();
+		//Console.WriteLine("------\ntrwiki 5k");
+		await Trwiki.trwiki5k(); //5k madde dz
 
+		//azwiki
 		Console.ForegroundColor = ConsoleColor.White;
 		Console.WriteLine("------\nazwiki");
-		await Azwiki.azwiki();			// azwiki madde dz
+		await Azwiki.azwiki();	// yeni madde dz
 
 		Console.ForegroundColor = ConsoleColor.White;
 		Console.WriteLine("Bitti.");
@@ -51,18 +54,32 @@ public class ToprakBot {
 	return;
 	}
 
-	//Son 24 saatte oluşturulan maddeleri alma fonksiyonu. String list olarak çıktı veriyor.
+	//Son x günde oluşturulan maddeleri API üzerinden alma fonksiyonu. String list olarak çıktı veriyor.
+	static public int songun = 1; //son 1 gün
 	static public async Task<List<string>> TitleList(string wiki) {
 		List<string> titles = new List<string>();
-		for(int i=-1;i<1;i++) {
-			string apiUrl = "https://" + wiki + ".org/w/api.php?action=query&formatversion=2&list=recentchanges&rcdir=older&rcend="+DateTime.Now.AddDays(-i-1).ToString("yyyy-MM-dd")+"T00:00:00.000Z&rclimit=max&rcnamespace=0&rcprop=title&rcstart="+DateTime.Now.AddDays(-i).ToString("yyyy-MM-dd")+"T00:00:00.000Z&rctype=new&format=json";
-			using(HttpClient client = new HttpClient()) {
-				string json = await client.GetStringAsync(apiUrl);
-				var jsonObject = JsonConvert.DeserializeObject<JObject>(json);
-				var recentChanges = jsonObject["query"]["recentchanges"];
-				foreach(var change in recentChanges) {
-					string title = change["title"].ToString();
-					titles.Add(title);
+		using (HttpClient client = new HttpClient()) {
+			for (int i = 0; i < songun; i++) {
+				string startDate = DateTime.UtcNow.AddDays(-i).ToString("yyyy-MM-dd") + "T00:00:00.000Z";
+				string endDate = DateTime.UtcNow.AddDays(-i - 1).ToString("yyyy-MM-dd") + "T00:00:00.000Z";
+				string apiUrl = $"https://{wiki}.org/w/api.php?action=query&formatversion=2&list=recentchanges&rcdir=older&rcend={endDate}&rclimit=max&rcnamespace=0&rcprop=title&rcstart={startDate}&rctype=new&format=json";
+
+				try {
+					string json = await client.GetStringAsync(apiUrl);
+					var jsonObject = JsonConvert.DeserializeObject<JObject>(json);
+					var recentChanges = jsonObject["query"]?["recentchanges"];
+
+					if (recentChanges != null) {
+						foreach (var change in recentChanges) {
+							string title = change["title"]?.ToString();
+							if (!string.IsNullOrEmpty(title)) {
+								titles.Add(title);
+							}
+						}
+					}
+				}
+				catch (Exception ex) {
+					Console.WriteLine($"Error fetching changes for day {i}: {ex.Message}");
 				}
 			}
 		}
@@ -72,7 +89,6 @@ public class ToprakBot {
 	//User:ToprakBot/Liste sayfasından düzenlenmesi istenen sayfaları çekiyor. (ilk 100)
 	//String list olarak çıktı veriyor.
 	static public async Task<List<string>> wikiliste(string wiki) {
-
 		ApiEdit editor = new ApiEdit("https://" + wiki + ".org/w/");
 		login(editor);
 		string sayfa = editor.Open("User:ToprakBot/Liste");
@@ -145,74 +161,20 @@ public class ToprakBot {
 	//Her ad alanının önceden atanmış bir kodu var. Çıktı olarak bu kodu veriyor.
 	//to-do bir şekilde çok dilli yapılacak
 	public int NameSpaceDedector(string ArticleTitle) {
-		Regex colon = new Regex(@"^(.*?)\:");
-		if (colon.Match(ArticleTitle).Success) {
-			var aracı = colon.Match(ArticleTitle);
-			string alan = aracı.Groups[1].Value;
-			switch(alan) {
-				case "Ortam":
-					return -2;
-				case "Özel":
-					return -1;
-				case "Tartışma":
-					return 1;
-				case "Kullanıcı":
-					return 2;
-				case "Kullanıcı mesaj":
-					return 3;
-				case "Vikipedi":
-					return 4;
-				case "Vikipedi tartışma":
-					return 5;
-				case "Dosya":
-				case "Resim":
-					return 6;
-				case "Dosya tartışma":
-					return 7;
-				case "MediaWiki":
-					return 8;
-				case "MediaWiki tartışma":
-					return 9;
-				case "Şablon":
-					return 10;
-				case "Şablon tartışma":
-					return 11;
-				case "Yardım":
-					return 12;
-				case "Yardım tartışma":
-					return 13;
-				case "Kategori":
-					return 14;
-				case "Kategori tartışma":
-					return 15;
-				case "Portal":
-					return 100;
-				case "Portal tartışma":
-					return 101;
-				case "Vikiproje":
-					return 102;
-				case "Vikiproje tartışma":
-					return 103;
-				case "TimedText":
-					return 710;
-				case "TimedText talk":
-					return 711;
-				case "Modül":
-					return 828;
-				case "Modül tartışma":
-					return 829;
-				case "Gadget":
-					return 2300;
-				case "Gadget talk":
-					return 2301;
-				case "Gadget definition":
-					return 2302;
-				case "Gadget definition talk":
-					return 2303;
-				default:
-					return 0;
-			}
-		}
-		return 0;
+		var nameSpaces = new Dictionary<string, int> {
+			{ "Ortam", -2 }, { "Özel", -1 }, { "Tartışma", 1 }, { "Kullanıcı", 2 },
+			{ "Kullanıcı mesaj", 3 }, { "Vikipedi", 4 }, { "Vikipedi tartışma", 5 },
+			{ "Dosya", 6 }, { "Resim", 6 }, { "Dosya tartışma", 7 }, { "MediaWiki", 8 },
+			{ "MediaWiki tartışma", 9 }, { "Şablon", 10 }, { "Şablon tartışma", 11 },
+			{ "Yardım", 12 }, { "Yardım tartışma", 13 }, { "Kategori", 14 },
+			{ "Kategori tartışma", 15 }, { "Portal", 100 }, { "Portal tartışma", 101 },
+			{ "Vikiproje", 102 }, { "Vikiproje tartışma", 103 }, { "TimedText", 710 },
+			{ "TimedText talk", 711 }, { "Modül", 828 }, { "Modül tartışma", 829 },
+			{ "Gadget", 2300 }, { "Gadget talk", 2301 }, { "Gadget definition", 2302 },
+			{ "Gadget definition talk", 2303 }
+		};
+
+		var match = Regex.Match(ArticleTitle, @"^(.*?):");
+		return (match.Success && nameSpaces.TryGetValue(match.Groups[1].Value, out int nsId)) ? nsId : 0;
 	}
 }
