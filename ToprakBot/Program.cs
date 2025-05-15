@@ -31,7 +31,7 @@ public class ToprakBot {
 		await ImageTest.AK();	// adil kullanım dosya dz
 
 		Console.ForegroundColor = ConsoleColor.White;
-		//Console.WriteLine("------\ntrwiki 5k");
+		Console.WriteLine("------\ntrwiki 5k");
 		await Trwiki.trwiki5k(); //5k madde dz
 
 		//azwiki
