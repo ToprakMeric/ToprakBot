@@ -14,11 +14,10 @@ using System.Net.Http;
 using System.Net;
 using System.Linq;
 using System.Text;
-using System.Text.Json;
 
 public class ToprakBot {
 	public static bool manual = false; //Sayfa listesini false ise API'den, true ise txt dosyadan alır
-	public static bool makine = true; //Çalıştığı yere göre dosya konumlarını seçer, true ise makine false ise pc konumları
+	public static bool makine = false; //Çalıştığı yere göre dosya konumlarını seçer, true ise makine false ise pc konumları
 	public static string wiki = "tr.wikipedia";
 	public static string wiki2 = "az.wikipedia";
 
@@ -51,7 +50,7 @@ public class ToprakBot {
 		else password = File.ReadAllText("C:\\Users\\Administrator\\Desktop\\password.txt");
 		editor.Login("ToprakBot@aws", password);
 
-	return;
+		return;
 	}
 
 	//Son x günde oluşturulan maddeleri API üzerinden alma fonksiyonu. String list olarak çıktı veriyor.
@@ -96,8 +95,8 @@ public class ToprakBot {
 		string pattern = @"^\#\s*(.*)$";
 		MatchCollection matches = Regex.Matches(sayfa, pattern, RegexOptions.Multiline);
 		List<string> titles = new List<string>();
+		
 		int i = 0;
-
 		foreach (Match match in matches) {
 			if (match.Success && i < 100) {
 				string title = match.Groups[1].Value.Trim();
@@ -115,7 +114,7 @@ public class ToprakBot {
 			sayfa = reg.Replace(sayfa, "");
 		}
 		Regex reg2 = new Regex(@"{{/başlık}}[\r\n\s]*");
-		if(reg2.Match(sayfa).Success || i == 0 || sayfa == "" || i != 100) sayfa = "{{/başlık}}\r\n\r\n# Örnek 1\r\n# Örnek 2\r\n# ...";
+		if (reg2.Match(sayfa).Success || i == 0 || sayfa == "" || i != 100) sayfa = "{{/başlık}}\r\n\r\n# Örnek 1\r\n# Örnek 2\r\n# ...";
 
 		if (bas == sayfa) Console.ForegroundColor = ConsoleColor.Yellow;
 		else Console.ForegroundColor = ConsoleColor.Green;
@@ -157,24 +156,22 @@ public class ToprakBot {
 		}
 	}
 
-	//ArticleTitle üzerinden sayfanın ad alanını tarıyor (yalnızca Türkçe)
-	//Her ad alanının önceden atanmış bir kodu var. Çıktı olarak bu kodu veriyor.
-	//to-do bir şekilde çok dilli yapılacak
-	public int NameSpaceDedector(string ArticleTitle) {
-		var nameSpaces = new Dictionary<string, int> {
-			{ "Ortam", -2 }, { "Özel", -1 }, { "Tartışma", 1 }, { "Kullanıcı", 2 },
-			{ "Kullanıcı mesaj", 3 }, { "Vikipedi", 4 }, { "Vikipedi tartışma", 5 },
-			{ "Dosya", 6 }, { "Resim", 6 }, { "Dosya tartışma", 7 }, { "MediaWiki", 8 },
-			{ "MediaWiki tartışma", 9 }, { "Şablon", 10 }, { "Şablon tartışma", 11 },
-			{ "Yardım", 12 }, { "Yardım tartışma", 13 }, { "Kategori", 14 },
-			{ "Kategori tartışma", 15 }, { "Portal", 100 }, { "Portal tartışma", 101 },
-			{ "Vikiproje", 102 }, { "Vikiproje tartışma", 103 }, { "TimedText", 710 },
-			{ "TimedText talk", 711 }, { "Modül", 828 }, { "Modül tartışma", 829 },
-			{ "Gadget", 2300 }, { "Gadget talk", 2301 }, { "Gadget definition", 2302 },
-			{ "Gadget definition talk", 2303 }
-		};
-
-		var match = Regex.Match(ArticleTitle, @"^(.*?):");
-		return (match.Success && nameSpaces.TryGetValue(match.Groups[1].Value, out int nsId)) ? nsId : 0;
+	//Title üzerinden sayfanın ad alanını tarıyor
+	public static async Task<int> NameSpaceDedector(string articleTitle) {
+		string apiUrl = $"https://{wiki}.org/w/api.php?action=query&format=json&titles={Uri.EscapeDataString(articleTitle)}&formatversion=2";
+		using(var client = new HttpClient()) {
+			try {
+				var response = await client.GetAsync(apiUrl);
+				response.EnsureSuccessStatusCode();
+				var json = await response.Content.ReadAsStringAsync();
+				var obj = JObject.Parse(json);
+				var nsToken = obj.SelectToken("query.pages[0].ns");
+				if(nsToken!=null&&int.TryParse(nsToken.ToString(), out int nsId))
+					return nsId;
+			} catch(Exception ex) {
+				Console.WriteLine("Namespace API hatası: "+ex.Message);
+			}
+		}
+		return 0;
 	}
 }

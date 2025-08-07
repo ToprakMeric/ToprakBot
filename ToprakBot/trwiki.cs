@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using WikiFunctions.API;
@@ -12,7 +11,6 @@ public class Trwiki {
 
 	//trwiki de yeni oluşturulan sayfalar burada düzenlenir.
 	public static async Task trwiki() {
-
 		ApiEdit editor = new ApiEdit("https://" + ToprakBot.wiki + ".org/w/");
 		ToprakBot.login(editor);
 
@@ -55,12 +53,12 @@ public class Trwiki {
 		foreach(string sayfa in titles) {
 			i++;
 			string ArticleText = "", madde = "", ekozet = "";
-			int NameSpace = türlü.NameSpaceDedector(sayfa);
+			int NameSpace = await ToprakBot.NameSpaceDedector(sayfa);
 			ArticleText = editor.Open(sayfa); //içeriği alıyor
 			madde = ArticleText;
 
 			Regex degistirmemeli = new Regex(@"\{\{\s*?(sil|çalışma|bekletmeli sil)\s*?(\||\}\})", RegexOptions.IgnoreCase);
-			if((!degistirmemeli.Match(ArticleText).Success)&&(NameSpace == 0)) { //Sadece ana ad alanı, diğer ad alanı kodları için bkz VP:İA
+			if((!degistirmemeli.Match(ArticleText).Success)&&(NameSpace == 0)) { //Sadece ana ad alanı, diğer ad alanı kodları için bkz Special:NamespaceInfo
 				var tuple = tredit(ArticleText, sayfa);
 				ArticleText = tuple.Item1;
 				ekozet = tuple.Item2;
@@ -101,19 +99,18 @@ public class Trwiki {
 	//Araç her gün 5 bin sayfa alarak onları tarıyor, bazı değişiklikler yapıyor.
 	//Bütün viki yaklaşık her 200 günde bir taranmış olacak.
     public static async Task trwiki5k() {
-
 		ApiEdit editor = new ApiEdit("https://" + ToprakBot.wiki + ".org/w/");
 		ToprakBot.login(editor);
 
 		List<string> titles;
 		string dizin;
-		if(!ToprakBot.makine) dizin = "D:\\AWB\\5kliste";
+		if (!ToprakBot.makine) dizin = "D:\\AWB\\5kliste";
 		else dizin = "C:\\Users\\Administrator\\Desktop\\5kliste";
 
 		StreamReader reader = new StreamReader(dizin + ".txt");
 		StreamWriter writer = new StreamWriter(dizin + "-temp.txt");
 
-		using (reader) {
+		using(reader) {
 			titles = new List<string>();
 			for (int iii = 0; iii < 5000; iii++) {
 				string line = reader.ReadLine();
@@ -121,7 +118,7 @@ public class Trwiki {
 				titles.Add(line);
 			}
 
-			using (writer) {
+			using(writer) {
                 string line;
                 while ((line = reader.ReadLine()) != null) writer.WriteLine(line);
             }
@@ -136,7 +133,7 @@ public class Trwiki {
 		DateTime bugun = DateTime.Today;
 		string bugunformat = bugun.ToString("yyyy-MM-dd");
 		string filePath;
-		if(!ToprakBot.makine) filePath = @"D:\AWB\log\tr\" + bugunformat + ".txt";
+		if (!ToprakBot.makine) filePath = @"D:\AWB\log\tr\" + bugunformat + ".txt";
 		else filePath = @"C:\Users\Administrator\Desktop\log\tr\" + bugunformat + ".txt";
 		StreamWriter sw = File.AppendText(filePath);
 
@@ -150,12 +147,12 @@ public class Trwiki {
 		foreach(string sayfa in titles) {
 			i++;
 			string ArticleText = "", madde = "", ekozet = "";
-			int NameSpace = türlü.NameSpaceDedector(sayfa);
+			int NameSpace = await ToprakBot.NameSpaceDedector(sayfa);
 			ArticleText = editor.Open(sayfa); //içeriği alıyor
 			madde = ArticleText;
 
 			Regex degistirmemeli = new Regex(@"\{\{\s*?(sil|çalışma|bekletmeli sil)\s*?(\||\}\})", RegexOptions.IgnoreCase);
-			if((!degistirmemeli.Match(ArticleText).Success)&&(NameSpace == 0)) { //Sadece ana ad alanı, diğer ad alanı kodları için bkz VP:İA
+			if ((!degistirmemeli.Match(ArticleText).Success)&&(NameSpace == 0)) { //Sadece ana ad alanı, diğer ad alanı kodları için bkz VP:İA
 				
 				//Yapılacak değişiklikler
 				ArticleText = Upright.Main(ArticleText);
@@ -169,15 +166,15 @@ public class Trwiki {
 				ekozet += tuple4.Item2;
 
 				Regex regex4 = new Regex(@"\|(ölüurl|ölü-url|bozukurl|bozukURL|deadurl|dead-url|url-status|urlstatus)\s*=\s*(no|live)");
-				if(regex4.Match(ArticleText).Success) ArticleText = regex4.Replace(ArticleText, "|ölüurl=hayır");
+				if (regex4.Match(ArticleText).Success) ArticleText = regex4.Replace(ArticleText, "|ölüurl=hayır");
 
 				Regex regex5 = new Regex(@"\|\s*(ölüurl|ölü-url|bozukurl|bozukURL|deadurl|dead-url|url-status|urlstatus)\s*=\s*(yes|dead)");
-				if(regex5.Match(ArticleText).Success) ArticleText = regex5.Replace(ArticleText, "|ölüurl=evet");
+				if (regex5.Match(ArticleText).Success) ArticleText = regex5.Replace(ArticleText, "|ölüurl=evet");
 
 			}
 
 			if (ArticleText == madde) {
-				if(NameSpace!=0) Console.ForegroundColor = ConsoleColor.Yellow;
+				if (NameSpace!=0) Console.ForegroundColor = ConsoleColor.Yellow;
 				else Console.ForegroundColor = ConsoleColor.Red;
 			} else {
 				string summary = "Düzenlemeler ve imla" + ekozet;

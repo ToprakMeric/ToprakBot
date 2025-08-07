@@ -12,7 +12,6 @@ using System.Linq;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Net;
-using System.Net.NetworkInformation;
 
 public class ImageTest {
 	public async static Task AK() {
@@ -34,13 +33,12 @@ public class ImageTest {
 
 			string[] allowedExtensions = { ".png", ".jpg", ".jpeg", ".gif", ".tiff" };
 			if (allowedExtensions.Contains(uzanti.ToLower())) {
-				//Dosyayı indir
-				byte[] imageBytes = await DownloadImage(apiUrl);
+				byte[] imageBytes = await DownloadImage(apiUrl); //Dosyayı indir
 
 				//Dosyayı ufalt ve yükle
 				float oran = Upright.FileRatio(dosya, true).Result;
 				Console.WriteLine("Oran:" + oran);
-				if(oran!=-1) {
+				if (oran!=-1) {
 					int newWidth = 300;
 					int newHeight = (int)(300 / oran);
 					Bitmap resizedImage = ResizeImage(imageBytes, newWidth, newHeight);
@@ -74,7 +72,7 @@ public class ImageTest {
 				string ArticleText = editor.Open("Dosya:" + dosya);
 
 				Regex dusursablon = new Regex(@"\{\{\s*?(adil kullanım kalitesini düşür|non-free reduce)(\|.*?|\s*?)\}\}\n*", RegexOptions.IgnoreCase);
-				if(dusursablon.Match(ArticleText).Success) {
+				if (dusursablon.Match(ArticleText).Success) {
 					ArticleText = dusursablon.Replace(ArticleText, "");
 					Console.WriteLine("Adım 2: Bakım şablonu kaldırıldı.");
 					editor.Save(ArticleText, "Adil kullanım kalitesini düşür bakım şablonu kaldırıldı.", true, WatchOptions.NoChange);
@@ -93,22 +91,22 @@ public class ImageTest {
 
 							JArray imageInfo = responseObject["query"]["pages"][0]["imageinfo"] as JArray;
 
-							int ii = 0;
+							int k = 0;
 							foreach (JToken info in imageInfo) {
 								string archivename = info["archivename"]?.ToString();
-								if (!string.IsNullOrEmpty(archivename)) ii++;
+								if (!string.IsNullOrEmpty(archivename)) k++;
 							}
 
-							if (ii==0) Console.WriteLine("Adım 3: Gizlenecek sürüm bulunamadı.");
+							if (k==0) Console.WriteLine("Adım 3: Gizlenecek sürüm bulunamadı.");
 							else {
 								Console.WriteLine("Adım 3: Sürümler gizleniyor.");
 								foreach (JToken info in imageInfo) {
-									ii++;
+									k++;
 									string archivename = info["archivename"]?.ToString();
 									if (!string.IsNullOrEmpty(archivename)) {
 										string timestamp = archivename.Split('!')[0];
 										PythonRevDel(dosya, timestamp);
-										Console.WriteLine(ii + ": " + timestamp + " gizlendi.");
+										Console.WriteLine(k + ": " + timestamp + " gizlendi.");
 									}
 								}
 							}
@@ -198,7 +196,7 @@ public class ImageTest {
 		string arguments = file.Replace(" ", "_") + " " + id + " revdel " + b;
 
 		ProcessStartInfo start = new ProcessStartInfo();
-		if(ToprakBot.makine) start.FileName = "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python310\\python.exe";
+		if (ToprakBot.makine) start.FileName = "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python310\\python.exe";
 		else start.FileName = "python";
 		start.Arguments = $"{pythonScriptPath} {arguments}";
 		start.UseShellExecute = false;

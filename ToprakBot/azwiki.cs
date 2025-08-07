@@ -10,9 +10,8 @@ using WikiFunctions.Parse;
 using WikiFunctions;
 
 public class Azwiki {
-
 	//azwiki de yeni oluşturulan sayfalar burada düzenlenir.
-    public static async Task azwiki() {
+	public static async Task azwiki() {
 		ApiEdit editor = new ApiEdit("https://" + ToprakBot.wiki2 + ".org/w/");
 		ToprakBot.login(editor);
 
@@ -21,7 +20,7 @@ public class Azwiki {
 		else titles = new List<string>();
 
 		List<string> wikiliste = await ToprakBot.wikiliste(ToprakBot.wiki2);
-		//titles.AddRange(wikiliste);
+		titles.AddRange(wikiliste);
 
 		titles = titles.Distinct().ToList();
 		int n = titles.Count;
@@ -29,7 +28,7 @@ public class Azwiki {
 		DateTime bugun = DateTime.Today;
 		string bugunformat = bugun.ToString("yyyy-MM-dd");
 		string filePath;
-		if(!ToprakBot.makine) filePath = @"D:\AWB\log\az\" + bugunformat + ".txt";
+		if (!ToprakBot.makine) filePath = @"D:\AWB\log\az\" + bugunformat + ".txt";
 		else filePath = @"C:\Users\Administrator\Desktop\log\az\" + bugunformat + ".txt";
 		StreamWriter sw = File.AppendText(filePath);
 
@@ -43,19 +42,19 @@ public class Azwiki {
 		foreach(string sayfa in titles) {
 			i++;
 			string ArticleText = "", madde = "", ekozet = "";
-			int NameSpace = türlü.NameSpaceDedector(sayfa);
+			int NameSpace = await ToprakBot.NameSpaceDedector(sayfa);
 			ArticleText = editor.Open(sayfa); //içeriği alıyor
 			madde = ArticleText;
 
 			Regex degistirmemeli = new Regex(@"\{\{\s*?(sil|[İi]ş gedir)\s*?(\||\}\})", RegexOptions.IgnoreCase);
-			if((!degistirmemeli.Match(ArticleText).Success)&&(NameSpace == 0)) { //Sadece ana ad alanı, diğer ad alanı kodları için bkz VP:İA
+			if ((!degistirmemeli.Match(ArticleText).Success)&&(NameSpace == 0)) { //Sadece ana ad alanı, diğer ad alanı kodları için bkz Special:NamespaceInfo
 				var tuple = azedit(ArticleText, sayfa);
 				ArticleText = tuple.Item1;
 				ekozet = tuple.Item2;
 			}
 
 			if (ArticleText == madde) {
-				if(NameSpace!=0) Console.ForegroundColor = ConsoleColor.Yellow;
+				if (NameSpace!=0) Console.ForegroundColor = ConsoleColor.Yellow;
 				else Console.ForegroundColor = ConsoleColor.Red;
 			} else {
 				string summary = "" + ekozet;
