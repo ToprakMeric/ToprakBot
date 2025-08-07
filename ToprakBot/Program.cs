@@ -158,20 +158,22 @@ public class ToprakBot {
 
 	//Title üzerinden sayfanın ad alanını tarıyor
 	public static async Task<int> NameSpaceDedector(string articleTitle) {
-		string apiUrl = $"https://{wiki}.org/w/api.php?action=query&format=json&titles={Uri.EscapeDataString(articleTitle)}&formatversion=2";
-		using(var client = new HttpClient()) {
-			try {
-				var response = await client.GetAsync(apiUrl);
-				response.EnsureSuccessStatusCode();
-				var json = await response.Content.ReadAsStringAsync();
-				var obj = JObject.Parse(json);
-				var nsToken = obj.SelectToken("query.pages[0].ns");
-				if(nsToken!=null&&int.TryParse(nsToken.ToString(), out int nsId))
-					return nsId;
-			} catch(Exception ex) {
-				Console.WriteLine("Namespace API hatası: "+ex.Message);
-			}
-		}
-		return 0;
-	}
+        if(!articleTitle.Contains(":")) return 0;
+
+        string apiUrl = $"https://{wiki}.org/w/api.php?action=query&format=json&titles={Uri.EscapeDataString(articleTitle)}&formatversion=2";
+        using(var client = new HttpClient()) {
+            try {
+                var response = await client.GetAsync(apiUrl);
+                response.EnsureSuccessStatusCode();
+                var json = await response.Content.ReadAsStringAsync();
+                var obj = JObject.Parse(json);
+                var nsToken = obj.SelectToken("query.pages[0].ns");
+                if (nsToken!=null&&int.TryParse(nsToken.ToString(), out int nsId))
+                    return nsId;
+            } catch(Exception ex) {
+                Console.WriteLine("Namespace API hatası: "+ex.Message);
+            }
+        }
+        return 0;
+    }
 }
