@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text.RegularExpressions;
-using WikiFunctions;
 
 public class NotListesi {
 	public static Tuple<string, string> Main(string ArticleText) {

@@ -10,13 +10,17 @@ using WikiFunctions.Parse;
 using WikiFunctions;
 
 public class Azwiki {
+	public static ApiEdit editor = new ApiEdit("https://" + ToprakBot.wiki2 + ".org/w/");
+
 	//azwiki de yeni oluşturulan sayfalar burada düzenlenir.
 	public static async Task azwiki() {
-		ApiEdit editor = new ApiEdit("https://" + ToprakBot.wiki2 + ".org/w/");
-		ToprakBot.login(editor);
+		
+		try {
+			ToprakBot.login(editor);
+		} catch(Exception ex) { ToprakBot.LogException("A01", ex); }
 
 		List<string> titles;
-		if(!ToprakBot.manual) titles = await ToprakBot.TitleList(ToprakBot.wiki2);
+		if (!ToprakBot.manual) titles = await ToprakBot.TitleList(ToprakBot.wiki2);
 		else titles = new List<string>();
 
 		List<string> wikiliste = await ToprakBot.wikiliste(ToprakBot.wiki2);
@@ -43,7 +47,10 @@ public class Azwiki {
 			i++;
 			string ArticleText = "", madde = "", ekozet = "";
 			int NameSpace = await ToprakBot.NameSpaceDedector(sayfa);
-			ArticleText = editor.Open(sayfa); //içeriği alıyor
+			
+			try {
+				ArticleText = editor.Open(sayfa); //içeriği alıyor
+			} catch(Exception ex) { ToprakBot.LogException("A02", ex); }
 			madde = ArticleText;
 
 			Regex degistirmemeli = new Regex(@"\{\{\s*?(sil|[İi]ş gedir)\s*?(\||\}\})", RegexOptions.IgnoreCase);
@@ -60,7 +67,10 @@ public class Azwiki {
 				string summary = "" + ekozet;
 				Console.ForegroundColor = ConsoleColor.Green;
 				loglist.Add(sayfa);
-				editor.Save(ArticleText, summary, true, WatchOptions.NoChange);
+				
+				try { 
+					editor.Save(ArticleText, summary, true, WatchOptions.NoChange);
+				} catch(Exception ex) { ToprakBot.LogException("A03", ex); }
 			}
 			Console.WriteLine(i+1 + "/" + n + ":\t" + sayfa + "\t");
 		}
@@ -70,7 +80,7 @@ public class Azwiki {
 	}
 
 	//Düzenlenecek yeni sayfa buraya düşüyor. Gerekli düzenlemeler yapılıp geri gidiyor.
-	static public Tuple<string, string> azedit(string ArticleText, string ArticleTitle) {
+	public static Tuple<string, string> azedit(string ArticleText, string ArticleTitle) {
 		string summary = "";
 
 		var tuple = Kaynakca.Az(ArticleText);

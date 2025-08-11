@@ -9,13 +9,16 @@ using WikiFunctions.Parse;
 using WikiFunctions;
 
 public class Kawiki {
+	public static ApiEdit editor = new ApiEdit("https://" + ToprakBot.wiki3 + ".org/w/");
+
 	//kawiki de yeni oluşturulan sayfalar burada düzenlenir.
 	public static async Task kawiki() {
-		ApiEdit editor = new ApiEdit("https://" + ToprakBot.wiki3 + ".org/w/");
-		ToprakBot.login(editor);
+		try {
+			ToprakBot.login(editor);
+		} catch(Exception ex) { ToprakBot.LogException("K01", ex); }
 
 		List<string> titles;
-		if(!ToprakBot.manual) titles = await ToprakBot.TitleList(ToprakBot.wiki3);
+		if (!ToprakBot.manual) titles = await ToprakBot.TitleList(ToprakBot.wiki3);
 		else titles = new List<string>();
 
 		//List<string> wikiliste = await ToprakBot.wikiliste(ToprakBot.wiki3);
@@ -42,7 +45,10 @@ public class Kawiki {
 			i++;
 			string ArticleText = "", madde = "", ekozet = "";
 			int NameSpace = await ToprakBot.NameSpaceDedector(sayfa);
-			ArticleText = editor.Open(sayfa); //içeriği alıyor
+			
+			try {
+				ArticleText = editor.Open(sayfa); //içeriği alıyor
+			} catch(Exception ex) { ToprakBot.LogException("K02", ex); continue; }
 			madde = ArticleText;
 
 			Regex degistirmemeli = new Regex(@"\{\{\s*?(delete|წასაშლელი)\s*?(\||\}\})", RegexOptions.IgnoreCase);
@@ -59,7 +65,10 @@ public class Kawiki {
 				string summary = "" + ekozet;
 				Console.ForegroundColor = ConsoleColor.Green;
 				loglist.Add(sayfa);
-				editor.Save(ArticleText, summary, true, WatchOptions.NoChange);
+				
+				try {
+					editor.Save(ArticleText, summary, true, WatchOptions.NoChange);
+				} catch(Exception ex) { ToprakBot.LogException("K03", ex); continue; }
 			}
 			Console.WriteLine(i+1 + "/" + n + ":\t" + sayfa + "\t");
 		}
@@ -69,7 +78,7 @@ public class Kawiki {
 	}
 
 	//Düzenlenecek yeni sayfa buraya düşüyor. Gerekli düzenlemeler yapılıp geri gidiyor.
-	static public Tuple<string, string> kaedit(string ArticleText, string ArticleTitle) {
+	public static Tuple<string, string> kaedit(string ArticleText, string ArticleTitle) {
 		string initialText = ArticleText;
 		string summary = "სხვადასხვა სქოლიო შესწორებები";
 

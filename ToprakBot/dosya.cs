@@ -16,7 +16,9 @@ using System.Net;
 public class ImageTest {
 	public async static Task AK() {
 		ApiEdit editor = new ApiEdit("https://" + ToprakBot.wiki + ".org/w/");
-		ToprakBot.login(editor);
+		try {
+			ToprakBot.login(editor);
+		} catch(Exception ex) { ToprakBot.LogException("D01", ex); }
 
 		List<string> liste = await dosyalist();
 		Regex uzantiregex = new Regex(@"(\.[a-z0-9]{3,4})$", RegexOptions.IgnoreCase);
@@ -41,41 +43,53 @@ public class ImageTest {
 				if (oran!=-1) {
 					int newWidth = 300;
 					int newHeight = (int)(300 / oran);
+					
 					Bitmap resizedImage = ResizeImage(imageBytes, newWidth, newHeight);
 
 					string outputPath;
 					if (ToprakBot.makine) outputPath = "C:\\Users\\Administrator\\Desktop\\file\\ResizedImage" + uzanti;
 					else outputPath = "D:\\ResizedImage" + uzanti;
-					switch(uzanti.ToLower()) {
-						case ".png":
-							resizedImage.Save(outputPath, System.Drawing.Imaging.ImageFormat.Png);
-							break;
-						case ".jpg":
-						case ".jpeg":
-							resizedImage.Save(outputPath, System.Drawing.Imaging.ImageFormat.Jpeg);
-							break;
-						case ".gif":
-							resizedImage.Save(outputPath, System.Drawing.Imaging.ImageFormat.Gif);
-							break;
-						case ".tiff":
-							resizedImage.Save(outputPath, System.Drawing.Imaging.ImageFormat.Tiff);
-							break;
-					}
+					try {
+						switch(uzanti.ToLower()) {
+							case ".png":
+								resizedImage.Save(outputPath, System.Drawing.Imaging.ImageFormat.Png);
+								break;
+							case ".jpg":
+							case ".jpeg":
+								resizedImage.Save(outputPath, System.Drawing.Imaging.ImageFormat.Jpeg);
+								break;
+							case ".gif":
+								resizedImage.Save(outputPath, System.Drawing.Imaging.ImageFormat.Gif);
+								break;
+							case ".tiff":
+								resizedImage.Save(outputPath, System.Drawing.Imaging.ImageFormat.Tiff);
+								break;
+						}
+					} catch(Exception ex) { ToprakBot.LogException("D02", ex); continue; }
 
 					Console.WriteLine("Adım 1: Resim başarıyla boyutlandırıldı ve kaydedildi.");
 
-					PythonUpload(dosya, uzanti);
+					try {
+						PythonUpload(dosya, uzanti);
+					} catch(Exception ex) { ToprakBot.LogException("D03", ex); continue; }
 
 				} else Console.WriteLine("Adım 1: Görsel zaten küçük.");
 
 				//{{Adil kullanım kalitesini düşür}} kaldır
-				string ArticleText = editor.Open("Dosya:" + dosya);
+				string ArticleText = null;
+				try {
+					ArticleText = editor.Open("Dosya:" + dosya);
+				} catch(Exception ex) { ToprakBot.LogException("D04", ex); continue; }
 
 				Regex dusursablon = new Regex(@"\{\{\s*?(adil kullanım kalitesini düşür|non-free reduce)(\|.*?|\s*?)\}\}\n*", RegexOptions.IgnoreCase);
 				if (dusursablon.Match(ArticleText).Success) {
 					ArticleText = dusursablon.Replace(ArticleText, "");
 					Console.WriteLine("Adım 2: Bakım şablonu kaldırıldı.");
-					editor.Save(ArticleText, "Adil kullanım kalitesini düşür bakım şablonu kaldırıldı.", true, WatchOptions.NoChange);
+					
+					try {
+						editor.Save(ArticleText, "Adil kullanım kalitesini düşür bakım şablonu kaldırıldı.", true, WatchOptions.NoChange);
+					} catch(Exception ex) { ToprakBot.LogException("D05", ex); continue; }
+
 				} else Console.WriteLine("Adım 2: Şablon bulunamadı.");
 
 				//Eski sürümleri gizle
@@ -112,10 +126,7 @@ public class ImageTest {
 							}
 						}
 					}
-				}
-				catch (Exception ex) {
-					Console.WriteLine("Exception: " + ex.Message);
-				}
+				} catch(Exception ex) { ToprakBot.LogException("D06", ex); }
 			} else Console.WriteLine("Bilinmeyen uzantı.");
 		}
 	}
@@ -133,10 +144,7 @@ public class ImageTest {
 				dynamic data = JsonConvert.DeserializeObject(jsonContent);
 				foreach (var item in data.query.categorymembers) titles.Add(item.title.ToString());
 			}
-		}
-		catch (Exception ex) {
-			Console.WriteLine("Hata oluştu: " + ex.Message);
-		}
+		} catch(Exception ex) { ToprakBot.LogException("D07", ex); }
 		return titles;
 	}
 
@@ -145,25 +153,24 @@ public class ImageTest {
 			client.DefaultRequestHeaders.Add("User-Agent", ToprakBot.userAgent);
 			try {
 				return await client.GetByteArrayAsync(url);
-			} catch (HttpRequestException ex) {
-				Console.WriteLine($"Error downloading image: {ex.Message}");
-				return null;
-			}
+			} catch(Exception ex) { ToprakBot.LogException("D08", ex); return null; }
 		}
 	}
 
 	public static Bitmap ResizeImage(byte[] imageBytes, int newWidth, int newHeight) {
-		using (MemoryStream ms = new MemoryStream(imageBytes)) {
-			Bitmap originalImage = new Bitmap(ms);
-			Bitmap resizedImage = new Bitmap(newWidth, newHeight);
+		try {
+			using (MemoryStream ms = new MemoryStream(imageBytes)) {
+				Bitmap originalImage = new Bitmap(ms);
+				Bitmap resizedImage = new Bitmap(newWidth, newHeight);
 
-			using (Graphics g = Graphics.FromImage(resizedImage)) {
-				g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-				g.DrawImage(originalImage, 0, 0, newWidth, newHeight);
+				using (Graphics g = Graphics.FromImage(resizedImage)) {
+					g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+					g.DrawImage(originalImage, 0, 0, newWidth, newHeight);
+				}
+
+				return resizedImage;
 			}
-
-			return resizedImage;
-		}
+		} catch (Exception ex) { ToprakBot.LogException("D09", ex); return null; }
 	}
 
 	public static void PythonUpload(string file, string uzanti) {
@@ -173,20 +180,22 @@ public class ImageTest {
 		int b = ToprakBot.makine ? 0 : 1;
 		string arguments = file.Replace(" ", "_") + " " + uzanti + " upload " + b;
 
-		ProcessStartInfo start = new ProcessStartInfo();
-		start.FileName = "python";
-		start.Arguments = $"{pythonScriptPath} {arguments}";
-		start.UseShellExecute = false;
-		start.RedirectStandardOutput = true;
+		try {
+			ProcessStartInfo start = new ProcessStartInfo();
+			start.FileName = "python";
+			start.Arguments = $"{pythonScriptPath} {arguments}";
+			start.UseShellExecute = false;
+			start.RedirectStandardOutput = true;
 
-		using (Process process = Process.Start(start)) {
-			using (StreamReader reader = process.StandardOutput) {
-				string result = reader.ReadToEnd();
-				Console.WriteLine(result);
+			using (Process process = Process.Start(start)) {
+				using (StreamReader reader = process.StandardOutput) {
+					string result = reader.ReadToEnd();
+					Console.WriteLine(result);
+				}
+
+				process.WaitForExit();
 			}
-
-			process.WaitForExit();
-		}
+		} catch (Exception ex) { ToprakBot.LogException("D10", ex); }
 	}
 
 	public static void PythonRevDel(string file, string id) {
@@ -196,20 +205,22 @@ public class ImageTest {
 		int b = ToprakBot.makine ? 0 : 1;
 		string arguments = file.Replace(" ", "_") + " " + id + " revdel " + b;
 
-		ProcessStartInfo start = new ProcessStartInfo();
-		if (ToprakBot.makine) start.FileName = "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python310\\python.exe";
-		else start.FileName = "python";
-		start.Arguments = $"{pythonScriptPath} {arguments}";
-		start.UseShellExecute = false;
-		start.RedirectStandardOutput = true;
+			try {
+			ProcessStartInfo start = new ProcessStartInfo();
+			if (ToprakBot.makine) start.FileName = "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python310\\python.exe";
+			else start.FileName = "python";
+			start.Arguments = $"{pythonScriptPath} {arguments}";
+			start.UseShellExecute = false;
+			start.RedirectStandardOutput = true;
 
-		using (Process process = Process.Start(start)) {
-			using (StreamReader reader = process.StandardOutput) {
-				string result = reader.ReadToEnd();
-				Console.WriteLine(result);
+			using (Process process = Process.Start(start)) {
+				using (StreamReader reader = process.StandardOutput) {
+					string result = reader.ReadToEnd();
+					Console.WriteLine(result);
+				}
+
+				process.WaitForExit();
 			}
-
-			process.WaitForExit();
-		}
+		} catch (Exception ex) { ToprakBot.LogException("D11", ex); }
 	}
 }

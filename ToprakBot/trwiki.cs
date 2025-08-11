@@ -9,16 +9,20 @@ using WikiFunctions.Parse;
 using WikiFunctions;
 public class Trwiki {
 
+	public static ApiEdit editor = new ApiEdit("https://" + ToprakBot.wiki + ".org/w/");
+
 	//trwiki de yeni oluşturulan sayfalar burada düzenlenir.
 	public static async Task trwiki() {
-		ApiEdit editor = new ApiEdit("https://" + ToprakBot.wiki + ".org/w/");
-		ToprakBot.login(editor);
+		try {
+			ToprakBot.login(editor);
+		} catch(Exception ex) { ToprakBot.LogException("T01", ex); }
+
 
 		List<string> titles;
-		if(!ToprakBot.manual) titles = await ToprakBot.TitleList(ToprakBot.wiki);
+		if (!ToprakBot.manual) titles = await ToprakBot.TitleList(ToprakBot.wiki);
 		else {
 			StreamReader reader;
-			if(!ToprakBot.makine) reader = new StreamReader("D:\\AWB\\liste.txt");
+			if (!ToprakBot.makine) reader = new StreamReader("D:\\AWB\\liste.txt");
 			else reader = new StreamReader("C:\\Users\\Administrator\\Desktop\\liste.txt");
 
 			using(reader) {
@@ -28,7 +32,7 @@ public class Trwiki {
 			}
 		}
 		List<string> hatalıkorumaşablist = await ToprakBot.korumalist(ToprakBot.wiki);
-		if(!ToprakBot.manual) titles.AddRange(hatalıkorumaşablist);
+		if (!ToprakBot.manual) titles.AddRange(hatalıkorumaşablist);
 
 		List<string> wikiliste = await ToprakBot.wikiliste(ToprakBot.wiki);
 		titles.AddRange(wikiliste);
@@ -39,7 +43,7 @@ public class Trwiki {
 		DateTime bugun = DateTime.Today;
 		string bugunformat = bugun.ToString("yyyy-MM-dd");
 		string filePath;
-		if(!ToprakBot.makine) filePath = @"D:\AWB\log\tr\" + bugunformat + ".txt";
+		if (!ToprakBot.makine) filePath = @"D:\AWB\log\tr\" + bugunformat + ".txt";
 		else filePath = @"C:\Users\Administrator\Desktop\log\tr\" + bugunformat + ".txt";
 		StreamWriter sw = File.AppendText(filePath);
 
@@ -54,11 +58,14 @@ public class Trwiki {
 			i++;
 			string ArticleText = "", madde = "", ekozet = "";
 			int NameSpace = await ToprakBot.NameSpaceDedector(sayfa);
-			ArticleText = editor.Open(sayfa); //içeriği alıyor
+
+			try {
+				ArticleText = editor.Open(sayfa); //içeriği alıyor
+			} catch(Exception ex) { ToprakBot.LogException("T02", ex); continue; }
 			madde = ArticleText;
 
 			Regex degistirmemeli = new Regex(@"\{\{\s*?(sil|çalışma|bekletmeli sil)\s*?(\||\}\})", RegexOptions.IgnoreCase);
-			if((!degistirmemeli.Match(ArticleText).Success)&&(NameSpace == 0)) { //Sadece ana ad alanı, diğer ad alanı kodları için bkz Special:NamespaceInfo
+			if ((!degistirmemeli.Match(ArticleText).Success)&&(NameSpace == 0)) { //Sadece ana ad alanı, diğer ad alanı kodları için bkz Special:NamespaceInfo
 				var tuple = tredit(ArticleText, sayfa);
 				ArticleText = tuple.Item1;
 				ekozet = tuple.Item2;
@@ -85,7 +92,9 @@ public class Trwiki {
 				string summary = "Düzenlemeler ve imla" + ekozet;
 				Console.ForegroundColor = ConsoleColor.Green;
 				loglist.Add(sayfa);
-				editor.Save(ArticleText, summary, true, WatchOptions.NoChange);
+				try {
+					editor.Save(ArticleText, summary, true, WatchOptions.NoChange);
+				} catch(Exception ex) { ToprakBot.LogException("T03", ex); continue; }
 			}
 			Console.WriteLine(i+1 + "/" + n + ":\t" + sayfa + "\t");
 		}
@@ -98,9 +107,10 @@ public class Trwiki {
 	//Bunun listesini AWB ile alıp 5kliste.txt olarak oluşturdum. //to-do: liste bittiyse yeniden oluşturacak
 	//Araç her gün 5 bin sayfa alarak onları tarıyor, bazı değişiklikler yapıyor.
 	//Bütün viki yaklaşık her 200 günde bir taranmış olacak.
-    public static async Task trwiki5k() {
-		ApiEdit editor = new ApiEdit("https://" + ToprakBot.wiki + ".org/w/");
-		ToprakBot.login(editor);
+	public static async Task trwiki5k() {
+		try {
+			ToprakBot.login(editor);
+		} catch(Exception ex) { ToprakBot.LogException("T04", ex); }
 
 		List<string> titles;
 		string dizin;
@@ -119,9 +129,9 @@ public class Trwiki {
 			}
 
 			using(writer) {
-                string line;
-                while ((line = reader.ReadLine()) != null) writer.WriteLine(line);
-            }
+				string line;
+				while ((line = reader.ReadLine()) != null) writer.WriteLine(line);
+			}
 		}
 
 		File.Delete(dizin + ".txt");
@@ -148,7 +158,11 @@ public class Trwiki {
 			i++;
 			string ArticleText = "", madde = "", ekozet = "";
 			int NameSpace = await ToprakBot.NameSpaceDedector(sayfa);
-			ArticleText = editor.Open(sayfa); //içeriği alıyor
+			try {
+				ArticleText = editor.Open(sayfa); //içeriği alıyor
+				madde = ArticleText;
+			} catch(Exception ex) { ToprakBot.LogException("T05", ex); continue; }
+
 			madde = ArticleText;
 
 			Regex degistirmemeli = new Regex(@"\{\{\s*?(sil|çalışma|bekletmeli sil)\s*?(\||\}\})", RegexOptions.IgnoreCase);
@@ -180,7 +194,9 @@ public class Trwiki {
 				string summary = "Düzenlemeler ve imla" + ekozet;
 				Console.ForegroundColor = ConsoleColor.Green;
 				loglist.Add(sayfa);
-				editor.Save(ArticleText, summary, true, WatchOptions.NoChange);
+				try {
+					editor.Save(ArticleText, summary, true, WatchOptions.NoChange);
+				} catch(Exception ex) { ToprakBot.LogException("T06", ex); continue; }
 			}
 			Console.WriteLine(i+1 + "/" + n + ":\t" + sayfa + "\t");
 		}
@@ -190,7 +206,7 @@ public class Trwiki {
 	}
 
 	//Düzenlenecek yeni sayfa buraya düşüyor. Sayfada yapılacak değişiklikler burada yapılıyor.
-	static public Tuple<string, string> tredit(string ArticleText, string ArticleTitle) {
+	public static Tuple<string, string> tredit(string ArticleText, string ArticleTitle) {
 		string summary = "";
 
 		ArticleText = Baslik.Main(ArticleText);
