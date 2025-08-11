@@ -221,6 +221,7 @@
     <Compile Include="NotListesi.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="kawiki.cs" />
     <Compile Include="trwiki.cs" />
     <Compile Include="Upright.cs" />
     <Compile Include="YalinURL.cs" />

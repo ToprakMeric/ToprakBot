@@ -71,7 +71,7 @@ public class Kawiki {
 	//Düzenlenecek yeni sayfa buraya düşüyor. Gerekli düzenlemeler yapılıp geri gidiyor.
 	static public Tuple<string, string> kaedit(string ArticleText, string ArticleTitle) {
 		string initialText = ArticleText;
-        string summary = "სხვადასხვა სქოლიო შესწორებები";
+		string summary = "სხვადასხვა სქოლიო შესწორებები";
 
 		var tuple = Kaynakca.Ka(ArticleText);
 		ArticleText = tuple.Item1;

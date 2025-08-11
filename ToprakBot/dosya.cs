@@ -127,6 +127,7 @@ public class ImageTest {
 		try {
 			using (var client = new WebClient()) {
 				client.Encoding = Encoding.UTF8;
+				client.Headers.Add("User-Agent", ToprakBot.userAgent);
 				string jsonContent = await client.DownloadStringTaskAsync(apiUrl);
 				
 				dynamic data = JsonConvert.DeserializeObject(jsonContent);
@@ -141,7 +142,7 @@ public class ImageTest {
 
 	public static async Task<byte[]> DownloadImage(string url) {
 		using (HttpClient client = new HttpClient()) {
-			client.DefaultRequestHeaders.Add("User-Agent", "ToprakBot trwiki");
+			client.DefaultRequestHeaders.Add("User-Agent", ToprakBot.userAgent);
 			try {
 				return await client.GetByteArrayAsync(url);
 			} catch (HttpRequestException ex) {

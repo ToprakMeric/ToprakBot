@@ -5,40 +5,41 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 public class Upright {
-	public static async Task<float> FileRatio(string file, bool adil) {
-		string apiUrl;
-		if (adil) apiUrl = "https://tr.wikipedia.org/w/api.php?action=query&prop=imageinfo&titles=File:" + file + "&iiprop=dimensions&format=json";
-		else apiUrl = "https://commons.wikimedia.org/w/api.php?action=query&prop=imageinfo&titles=File:" + file + "&iiprop=dimensions&format=json";
+    public static async Task<float> FileRatio(string file, bool adil) {
+        string apiUrl;
+        if (adil) apiUrl = "https://tr.wikipedia.org/w/api.php?action=query&prop=imageinfo&titles=File:" + file + "&iiprop=dimensions&format=json";
+        else apiUrl = "https://commons.wikimedia.org/w/api.php?action=query&prop=imageinfo&titles=File:" + file + "&iiprop=dimensions&format=json";
 
-		int imageHeight = -1, imageWidth = -1;
+        int imageHeight = -1, imageWidth = -1;
 
-		using(var httpClient = new HttpClient()) {
-			try {
-				var response = await httpClient.GetStringAsync(apiUrl);
-				var jsonObject = JObject.Parse(response);
+        using(var httpClient = new HttpClient()) {
+            httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(ToprakBot.userAgent);
+            try {
+                var response = await httpClient.GetStringAsync(apiUrl);
+                var jsonObject = JObject.Parse(response);
 
-				JObject pages = jsonObject["query"]["pages"] as JObject;
+                JObject pages = jsonObject["query"]["pages"] as JObject;
 
-				if (pages!=null) {
-					foreach(JProperty pageProperty in pages.Properties()) {
+                if (pages!=null) {
+                    foreach(JProperty pageProperty in pages.Properties()) {
 
-						JObject page = pageProperty.Value as JObject;
+                        JObject page = pageProperty.Value as JObject;
 
-						if (page!=null&&page["imageinfo"] is JArray imageInfoArray&&imageInfoArray.Count>0) {
-							int.TryParse(imageInfoArray[0]["height"].ToString(), out imageHeight);
-							int.TryParse(imageInfoArray[0]["width"].ToString(), out imageWidth);
-							break;
-						}
-					}
-				}
+                        if (page!=null&&page["imageinfo"] is JArray imageInfoArray&&imageInfoArray.Count>0) {
+                            int.TryParse(imageInfoArray[0]["height"].ToString(), out imageHeight);
+                            int.TryParse(imageInfoArray[0]["width"].ToString(), out imageWidth);
+                            break;
+                        }
+                    }
+                }
 
-			} catch(Exception ex) {
-				Console.WriteLine("Hata: "+ex.Message);
-			}
-		}
-		if (adil&&(Math.Min(imageWidth, imageHeight)<=300)) return -1;
-		return (float)imageWidth/imageHeight;
-	}
+            } catch(Exception ex) {
+                Console.WriteLine("Hata: "+ex.Message);
+            }
+        }
+        if (adil&&(Math.Min(imageWidth, imageHeight)<=300)) return -1;
+        return (float)imageWidth/imageHeight;
+    }
 
 	public static string Main(string ArticleText) {
 		Regex kucukresim = new Regex(@"\[\[\s*?(Dosya|Resim|File|Image)\:\s*?.*?\s*?\|\s*?(thumb|küçükresim)\s*?.*?\]\]", RegexOptions.IgnoreCase);
