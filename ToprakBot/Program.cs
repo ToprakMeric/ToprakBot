@@ -16,7 +16,7 @@ using System.Diagnostics;
 
 public class ToprakBot {
 	public static bool manual = false; //Sayfa listesini false ise API'den, true ise txt dosyadan alır
-	public static bool makine = false; //Çalıştığı yere göre dosya konumlarını seçer, true ise makine false ise pc konumları
+	public static bool makine = true; //Çalıştığı yere göre dosya konumlarını seçer, true ise makine false ise pc konumları
 	public static string wiki = "tr.wikipedia";
 	public static string wiki2 = "az.wikipedia";
 	public static string wiki3 = "ka.wikipedia";
@@ -42,7 +42,7 @@ public class ToprakBot {
 
 		Console.ForegroundColor = ConsoleColor.White;
 		Console.WriteLine("------\ntrwiki 5k");
-		//await Trwiki.trwiki5k(); //5k madde dz
+		await Trwiki.trwiki5k(); //5k madde dz
 
 		//azwiki
 		Console.ForegroundColor = ConsoleColor.White;
@@ -74,7 +74,7 @@ public class ToprakBot {
 	}
 
 	//Son x günde oluşturulan maddeleri API üzerinden alma fonksiyonu. String list olarak çıktı veriyor.
-	public static int songun = 1; //son 1 gün
+	public static int songun = 1000; //son 1 gün
 	public static async Task<List<string>> TitleList(string wiki) {
 		List<string> titles = new List<string>();
 		using(HttpClient client = new HttpClient()) {

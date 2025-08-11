@@ -99,6 +99,17 @@ public class Kawiki {
 		if (initialText != ArticleText) {
 			ArticleText = Parsers.SimplifyReferenceTags(ArticleText);
 			ArticleText = Parsers.FixReferenceTags(ArticleText);
+			ArticleText = ArticleText.Trim();
+			ArticleText = Parsers.FixTemperatures(ArticleText);
+			ArticleText = parser.FixBrParagraphs(ArticleText).Trim();
+			ArticleText = Parsers.FixLinkWhitespace(ArticleText, ArticleTitle);
+			ArticleText = Parsers.FixSyntax(ArticleText);
+			ArticleText = Parsers.FixCategories(ArticleText);
+			ArticleText = Parsers.FixImages(ArticleText);
+			ArticleText = Parsers.SimplifyLinks(ArticleText);
+			ArticleText = Parsers.FixMainArticle(ArticleText);
+			ArticleText = Parsers.FixReferenceListTags(ArticleText);
+			ArticleText = Parsers.FixEmptyLinksAndTemplates(ArticleText);
 		}
 
 		return new Tuple<string, string>(ArticleText, summary);
