@@ -5,8 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using WikiFunctions.API;
-using WikiFunctions.Parse;
-using WikiFunctions;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -20,23 +18,31 @@ public class ToprakBot {
 	public static bool makine = false; //Çalıştığı yere göre dosya konumlarını seçer, true ise makine false ise pc konumları
 	public static string wiki = "tr.wikipedia";
 	public static string wiki2 = "az.wikipedia";
+	public static string wiki3 = "ka.wikipedia";
+
+	private const string userAgent = "ToprakBot/1.7 (https://meta.wikimedia.org/wiki/User:ToprakBot; toprak@tprk.tr) C#/.NET";
 
 	//Giriş: kod çalışmaya buradan başlıyor.
 	public static async Task Main(string[] args) {
 		//trwiki
 		Console.ForegroundColor = ConsoleColor.White;
-		Console.WriteLine("trwiki");
-		await Trwiki.trwiki();	// yeni madde dz
-		await ImageTest.AK();	// adil kullanım dosya dz
+		//Console.WriteLine("trwiki");
+		//await Trwiki.trwiki();	// yeni madde dz
+		//await ImageTest.AK();	// adil kullanım dosya dz
 
-		Console.ForegroundColor = ConsoleColor.White;
-		Console.WriteLine("------\ntrwiki 5k");
-		await Trwiki.trwiki5k(); //5k madde dz
+		//Console.ForegroundColor = ConsoleColor.White;
+		//Console.WriteLine("------\ntrwiki 5k");
+		//await Trwiki.trwiki5k(); //5k madde dz
 
 		//azwiki
+		//Console.ForegroundColor = ConsoleColor.White;
+		//Console.WriteLine("------\nazwiki");
+		//await Azwiki.azwiki();	// yeni madde dz
+
+		//kawiki
 		Console.ForegroundColor = ConsoleColor.White;
-		Console.WriteLine("------\nazwiki");
-		await Azwiki.azwiki();	// yeni madde dz
+		Console.WriteLine("------\nkawiki");
+		await Kawiki.kawiki();	// yeni madde dz
 
 		Console.ForegroundColor = ConsoleColor.White;
 		Console.WriteLine("Bitti.");
@@ -54,40 +60,38 @@ public class ToprakBot {
 	}
 
 	//Son x günde oluşturulan maddeleri API üzerinden alma fonksiyonu. String list olarak çıktı veriyor.
-	static public int songun = 1; //son 1 gün
-	static public async Task<List<string>> TitleList(string wiki) {
-		List<string> titles = new List<string>();
-		using (HttpClient client = new HttpClient()) {
-			for (int i = 0; i < songun; i++) {
-				string startDate = DateTime.UtcNow.AddDays(-i).ToString("yyyy-MM-dd") + "T00:00:00.000Z";
-				string endDate = DateTime.UtcNow.AddDays(-i - 1).ToString("yyyy-MM-dd") + "T00:00:00.000Z";
-				string apiUrl = $"https://{wiki}.org/w/api.php?action=query&formatversion=2&list=recentchanges&rcdir=older&rcend={endDate}&rclimit=max&rcnamespace=0&rcprop=title&rcstart={startDate}&rctype=new&format=json";
+	static public int songun = 25; //son 1 gün
+    static public async Task<List<string>> TitleList(string wiki) {
+        List<string> titles = new List<string>();
+        using(HttpClient client = new HttpClient()) {
+            client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
+            for(int i = 10;i<songun;i++) {
+                string startDate = DateTime.UtcNow.AddDays(-i).ToString("yyyy-MM-dd")+"T00:00:00.000Z";
+                string endDate = DateTime.UtcNow.AddDays(-i-1).ToString("yyyy-MM-dd")+"T00:00:00.000Z";
+                string apiUrl = $"https://{wiki}.org/w/api.php?action=query&formatversion=2&list=recentchanges&rcdir=older&rcend={endDate}&rclimit=max&rcnamespace=0&rcprop=title&rcstart={startDate}&rctype=new&format=json";
 
-				try {
-					string json = await client.GetStringAsync(apiUrl);
-					var jsonObject = JsonConvert.DeserializeObject<JObject>(json);
-					var recentChanges = jsonObject["query"]?["recentchanges"];
+                try {
+                    string json = await client.GetStringAsync(apiUrl);
+                    var jsonObject = JsonConvert.DeserializeObject<JObject>(json);
+                    var recentChanges = jsonObject["query"]?["recentchanges"];
 
-					if (recentChanges != null) {
-						foreach (var change in recentChanges) {
-							string title = change["title"]?.ToString();
-							if (!string.IsNullOrEmpty(title)) {
-								titles.Add(title);
-							}
-						}
-					}
-				}
-				catch (Exception ex) {
-					Console.WriteLine($"Error fetching changes for day {i}: {ex.Message}");
-				}
-			}
-		}
-		return titles;
-	}
+                    if(recentChanges!=null) {
+                        foreach(var change in recentChanges) {
+                            string title = change["title"]?.ToString();
+                            if(!string.IsNullOrEmpty(title)) titles.Add(title);
+                        }
+                    }
+                } catch(Exception ex) {
+                    Console.WriteLine($"Error fetching changes for day {i}: {ex.Message}");
+                }
+            }
+        }
+        return titles;
+    }
 
 	//User:ToprakBot/Liste sayfasından düzenlenmesi istenen sayfaları çekiyor. (ilk 100)
 	//String list olarak çıktı veriyor.
-	static public async Task<List<string>> wikiliste(string wiki) {
+	static public Task<List<string>> wikiliste(string wiki) {
 		ApiEdit editor = new ApiEdit("https://" + wiki + ".org/w/");
 		login(editor);
 		string sayfa = editor.Open("User:ToprakBot/Liste");
@@ -120,7 +124,8 @@ public class ToprakBot {
 		else Console.ForegroundColor = ConsoleColor.Green;
 		editor.Save(sayfa, i + " sayfa alındı.", true, WatchOptions.NoChange);
 		Console.WriteLine("ToprakBot/Liste: " + i + " sayfa alındı");
-		return titles;
+
+        return Task.FromResult(titles);
 	}
 	
 	//Hatalı koruma şablonuna sahip sayfalar kategorisindeki sayfaları çekiyor. String list olarak çıktı veriyor.
@@ -130,6 +135,7 @@ public class ToprakBot {
 		try {
 			using (var client = new WebClient()) {
 				client.Encoding = Encoding.UTF8;
+				client.Headers.Add(HttpRequestHeader.UserAgent, userAgent);
 				string jsonContent = await client.DownloadStringTaskAsync(apiUrl);
 				
 				dynamic data = JsonConvert.DeserializeObject(jsonContent);
@@ -144,13 +150,14 @@ public class ToprakBot {
 
 	//Sayfanın koruma altında olup olmadığını kontrol ediyor. bool çıktısı veriyor
 	static public async Task<bool> GetProtectionStatus(string title, string wiki) {
-		string apiUrl = "https://" + wiki + ".org/w/api.php?action=query&format=json&prop=info&titles=" + title + "&formatversion=2&inprop=protection";
-		using (var client = new HttpClient()) {
-			HttpResponseMessage response = await client.GetAsync(apiUrl);
-			response.EnsureSuccessStatusCode();
-			string responseBody = await response.Content.ReadAsStringAsync();
-			JObject jsonResponse = JObject.Parse(responseBody);
-			JToken protectionToken = jsonResponse.SelectToken("query.pages[0].protection");
+        string apiUrl = "https://"+wiki+".org/w/api.php?action=query&format=json&prop=info&titles="+title+"&formatversion=2&inprop=protection";
+        using(var client = new HttpClient()) {
+            client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
+            HttpResponseMessage response = await client.GetAsync(apiUrl);
+            response.EnsureSuccessStatusCode();
+            string responseBody = await response.Content.ReadAsStringAsync();
+            JObject jsonResponse = JObject.Parse(responseBody);
+            JToken protectionToken = jsonResponse.SelectToken("query.pages[0].protection");
 			if (protectionToken != null && protectionToken.Count() > 0) return true;
 			else return false;
 		}
@@ -158,10 +165,11 @@ public class ToprakBot {
 
 	//Title üzerinden sayfanın ad alanını tarıyor
 	public static async Task<int> NameSpaceDedector(string articleTitle) {
-        if(!articleTitle.Contains(":")) return 0;
+        if (!articleTitle.Contains(":")) return 0;
 
         string apiUrl = $"https://{wiki}.org/w/api.php?action=query&format=json&titles={Uri.EscapeDataString(articleTitle)}&formatversion=2";
         using(var client = new HttpClient()) {
+            client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
             try {
                 var response = await client.GetAsync(apiUrl);
                 response.EnsureSuccessStatusCode();

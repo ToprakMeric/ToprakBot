@@ -85,4 +85,45 @@ public class Kaynakca {
 		}
 		return new Tuple<string, string>(ArticleText, summary);
 	}
+
+	//ka
+	public static Tuple<string, string> Ka(string ArticleText) {
+		string summary = "";
+
+		Match kat = Regex.Match(ArticleText, @"\[\[კატეგორია:");
+		Match taslak = Regex.Match(ArticleText, @"{{(?:.{1,}\-|)დაუსრულებელი სტატია\s*?}}");
+
+		Regex one = new Regex(@"(სქოლიო|==\s*?სქოლიო\s*?==)", RegexOptions.IgnoreCase);
+		Regex two = new Regex(@"(R|r)eferences", RegexOptions.IgnoreCase);
+		Regex four = new Regex(@"{{\s*reflist", RegexOptions.IgnoreCase);
+		Regex six = new Regex(@"\=\=\s*სქოლიო\s*\=\=\r\n\[\[(კატეგორია|Category)\:\s*", RegexOptions.Singleline);
+		Regex seven = new Regex(@"\=\=\s*İstinadlar\s*\=\=\r\n\r\n\[\[(Kateqoriya|Category)\:\s*", RegexOptions.Singleline);
+		Regex eight = new Regex(@"\{\{\s*(სქოლიოს სია|reflist|references)\s*(\||\}\})", RegexOptions.IgnoreCase);
+		Regex nine = new Regex(@"<\s*references\s*(\/|)\s*\>");
+
+		if (ArticleText.Contains("<ref")&&(!(eight.Match(ArticleText).Success||nine.Match(ArticleText).Success))) {
+			if (!(one.Match(ArticleText).Success||two.Match(ArticleText).Success||four.Match(ArticleText).Success)) {
+				if (kat.Success) ArticleText = ArticleText.Insert(kat.Index, "== სქოლიო ==\n{{სქოლიო}}\r\n\n");
+				else ArticleText += "\r\n\r\n== სქოლიო ==\n{{სქოლიო}}";
+
+				ArticleText = ArticleText.Replace("\n\n== სქოლიო ==", "\n== სქოლიო ==");
+				summary += "; დაემატა სქოლიოს სექცია";
+			}
+
+			
+			if (six.Match(ArticleText).Success) {
+				Regex R1 = new Regex(@"\=\=\s*სქოლიო\s*\=\=");
+				ArticleText = R1.Replace(ArticleText, "== სქოლიო ==\r\n{{სქოლიო}}\n");
+				summary += "; დაემატა სქოლიოს თარგი";
+			} else if (seven.Match(ArticleText).Success) {
+				Regex R2 = new Regex(@"\=\=\s*სქოლიო\s*\=\=");
+				ArticleText = R2.Replace(ArticleText, "== სქოლიო ==\r\n{{სქოლიო}}");
+				summary += "; დაემატა სქოლიოს თარგი";
+			}
+
+			Regex kaydz = new Regex(@"(\S\n{1})(\=\= სქოლიო ==)");
+			ArticleText = kaydz.Replace(ArticleText, "$1\n$2");
+		}
+		return new Tuple<string, string>(ArticleText, summary);
+	}
 }
