@@ -168,12 +168,13 @@ public class GorunmezKarakter {
 		string str2 = string.Empty;
 		foreach(var item2 in gereksiz) str2 = str2 + item2 + ", ";
 
-        if (!string.IsNullOrEmpty(str)) {
+
+		if (!string.IsNullOrEmpty(str)) {
 			str = str.Remove(str.Length-2);
 			summary += lang == "tr" ? "; Görünmez karakterler fark edilebilir kılındı: " + str:
 					   lang == "az" ? "; Görünməz boşluqlar görünür edildi: " + str : "";
 		}
-        if (!string.IsNullOrEmpty(str2)) {
+		if (!string.IsNullOrEmpty(str2)) {
 			str2 = str2.Remove(str2.Length-2);
 			summary += lang == "tr" ? "; Gereksiz görünmez karakterler kaldırıldı: " + str2:
 					   lang == "az" ? "; Lazımsız görünməz boşluqlar silindi: " + str2 : "";

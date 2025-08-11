@@ -27,12 +27,12 @@ public class ToprakBot {
 	public static async Task Main(string[] args) {
 		
 		//log listener
-        DateTime bugun = DateTime.Today;
-        string filePath, bugunformat = bugun.ToString("yyyy-MM-dd");
-        if (!makine) filePath = @"D:\AWB\log\error\" + bugunformat + ".txt";
-        else filePath = @"C:\Users\Administrator\Desktop\log\error\" + bugunformat + ".txt";
-        Trace.Listeners.Add(new TextWriterTraceListener(filePath));
-        Trace.AutoFlush=true;
+		DateTime bugun = DateTime.Today;
+		string filePath, bugunformat = bugun.ToString("yyyy-MM-dd");
+		if (!makine) filePath = @"D:\AWB\log\error\" + bugunformat + ".txt";
+		else filePath = @"C:\Users\Administrator\Desktop\log\error\" + bugunformat + ".txt";
+		Trace.Listeners.Add(new TextWriterTraceListener(filePath));
+		Trace.AutoFlush=true;
 
 		//trwiki
 		Console.ForegroundColor = ConsoleColor.White;
