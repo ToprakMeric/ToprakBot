@@ -74,7 +74,7 @@ public class ToprakBot {
 	}
 
 	//Son x günde oluşturulan maddeleri API üzerinden alma fonksiyonu. String list olarak çıktı veriyor.
-	public static int songun = 1000; //son 1 gün
+	public static int songun = 1; //son 1 gün
 	public static async Task<List<string>> TitleList(string wiki) {
 		List<string> titles = new List<string>();
 		using(HttpClient client = new HttpClient()) {
