@@ -23,7 +23,7 @@ elif sys.argv[4] == "0":
 		password = file.read()
 
 USER,PASS = u'ToprakBot@aws', password
-USER_AGENT='ToprakBot (https://meta.wikimedia.org/wiki/User:ToprakBot; toprak@tprk.tr) C#/.NET'
+USER_AGENT='ToprakBot (https://meta.wikimedia.org/wiki/User:ToprakBot; toprak@tprk.tr) Python/3'
 
 payload = {'action': 'query', 'format': 'json', 'utf8': '',
 		   'meta': 'tokens', 'type': 'login'}
