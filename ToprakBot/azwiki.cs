@@ -21,7 +21,17 @@ public class Azwiki {
 
 		List<string> titles;
 		if (!ToprakBot.manual) titles = await ToprakBot.TitleList(ToprakBot.wiki2);
-		else titles = new List<string>();
+		else {
+			StreamReader reader;
+			if (!ToprakBot.makine) reader = new StreamReader("D:\\AWB\\liste.txt");
+			else reader = new StreamReader("C:\\Users\\Administrator\\Desktop\\liste.txt");
+
+			using(reader) {
+				titles = new List<string>();
+				string line;
+				while((line=reader.ReadLine())!=null) titles.Add(line);
+			}
+		}
 
 		List<string> wikiliste = await ToprakBot.wikiliste(ToprakBot.wiki2);
 		titles.AddRange(wikiliste);
@@ -82,11 +92,12 @@ public class Azwiki {
 	//Düzenlenecek yeni sayfa buraya düşüyor. Gerekli düzenlemeler yapılıp geri gidiyor.
 	public static Tuple<string, string> azedit(string ArticleText, string ArticleTitle) {
 		string summary = "";
+		string UneditedArticleText = ArticleText;
 
 		var tuple = Kaynakca.Az(ArticleText);
 		ArticleText = tuple.Item1;
 		summary += tuple.Item2;
-
+		
 		var tuple3 = GorunmezKarakter.Main(ArticleText, ArticleTitle, "az");
 		ArticleText = tuple3.Item1;
 		summary += tuple3.Item2;
@@ -113,11 +124,17 @@ public class Azwiki {
 		ArticleText = Parsers.SameRefDifferentName(ArticleText);
 		ArticleText = Parsers.RefsAfterPunctuation(ArticleText);
 		ArticleText = Parsers.ReorderReferences(ArticleText);
-		ArticleText = parser.SortMetaData(ArticleText, ArticleTitle);
-		ArticleText = ArticleText.Trim();
+		//ArticleText = parser.SortMetaData(ArticleText, ArticleTitle); //defaultshort yapıyor yapmasın
 		//ArticleText = parser.FixNonBreakingSpaces(ArticleText); //AWB bug bkz w.wiki/9p6C
 		//ArticleText = parser.FixDatesA(ArticleText).Trim();
 		//ArticleText = Parsers.FixCitationTemplates(ArticleText);
+		
+		if(UneditedArticleText != ArticleText) {
+			ArticleText = ArticleText.Trim();
+
+			Regex regexA = new Regex(@"(\S)\r\n(={1,4}\s*?.*\s*?={1,4})\r\n");
+			if(regexA.Match(ArticleText).Success) ArticleText = regexA.Replace(ArticleText, "$1\n\n$2\n");
+		}
 
 		return new Tuple<string, string>(ArticleText, summary);
 	}

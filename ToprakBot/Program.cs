@@ -40,7 +40,7 @@ public class ToprakBot {
 		await Trwiki.trwiki();	// yeni madde dz
 		await ImageTest.AK();	// adil kullanım dosya dz
 
-		Console.ForegroundColor = ConsoleColor.White;
+		/Console.ForegroundColor = ConsoleColor.White;
 		Console.WriteLine("------\ntrwiki 5k");
 		await Trwiki.trwiki5k(); //5k madde dz
 

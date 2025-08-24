@@ -19,7 +19,17 @@ public class Kawiki {
 
 		List<string> titles;
 		if (!ToprakBot.manual) titles = await ToprakBot.TitleList(ToprakBot.wiki3);
-		else titles = new List<string>();
+		else {
+			StreamReader reader;
+			if (!ToprakBot.makine) reader = new StreamReader("D:\\AWB\\liste.txt");
+			else reader = new StreamReader("C:\\Users\\Administrator\\Desktop\\liste.txt");
+
+			using(reader) {
+				titles = new List<string>();
+				string line;
+				while((line=reader.ReadLine())!=null) titles.Add(line);
+			}
+		}
 
 		//List<string> wikiliste = await ToprakBot.wikiliste(ToprakBot.wiki3);
 		//titles.AddRange(wikiliste);
@@ -79,7 +89,7 @@ public class Kawiki {
 
 	//Düzenlenecek yeni sayfa buraya düşüyor. Gerekli düzenlemeler yapılıp geri gidiyor.
 	public static Tuple<string, string> kaedit(string ArticleText, string ArticleTitle) {
-		string initialText = ArticleText;
+		string UneditedArticleText = ArticleText;
 		string summary = "სხვადასხვა სქოლიო შესწორებები";
 
 		var tuple = Kaynakca.Ka(ArticleText);
@@ -96,10 +106,11 @@ public class Kawiki {
 		ArticleText = Parsers.RefsAfterPunctuation(ArticleText);
 		ArticleText = Parsers.ReorderReferences(ArticleText);
 
-		if (initialText != ArticleText) {
+		if (UneditedArticleText != ArticleText) {
+			ArticleText = ArticleText.Trim();
+
 			ArticleText = Parsers.SimplifyReferenceTags(ArticleText);
 			ArticleText = Parsers.FixReferenceTags(ArticleText);
-			ArticleText = ArticleText.Trim();
 			ArticleText = Parsers.FixTemperatures(ArticleText);
 			ArticleText = parser.FixBrParagraphs(ArticleText).Trim();
 			ArticleText = Parsers.FixLinkWhitespace(ArticleText, ArticleTitle);
@@ -110,6 +121,9 @@ public class Kawiki {
 			ArticleText = Parsers.FixMainArticle(ArticleText);
 			ArticleText = Parsers.FixReferenceListTags(ArticleText);
 			ArticleText = Parsers.FixEmptyLinksAndTemplates(ArticleText);
+
+			Regex regexA = new Regex(@"(\S)\r\n(={1,4}\s*?.*\s*?={1,4})\r\n");
+			if(regexA.Match(ArticleText).Success) ArticleText = regexA.Replace(ArticleText, "$1\n\n$2\n");
 		}
 
 		return new Tuple<string, string>(ArticleText, summary);

@@ -208,6 +208,7 @@ public class Trwiki {
 	//Düzenlenecek yeni sayfa buraya düşüyor. Sayfada yapılacak değişiklikler burada yapılıyor.
 	public static Tuple<string, string> tredit(string ArticleText, string ArticleTitle) {
 		string summary = "";
+		string UneditedArticleText = ArticleText;
 
 		ArticleText = Baslik.Main(ArticleText);
 
@@ -295,11 +296,18 @@ public class Trwiki {
 		ArticleText = Parsers.SameRefDifferentName(ArticleText);
 		ArticleText = Parsers.RefsAfterPunctuation(ArticleText);
 		ArticleText = Parsers.ReorderReferences(ArticleText);
-		ArticleText = parser.SortMetaData(ArticleText, ArticleTitle);
-		ArticleText = ArticleText.Trim();
+		//ArticleText = parser.SortMetaData(ArticleText, ArticleTitle); //defaultshort yapıyor yapmasın
 		//ArticleText = parser.FixNonBreakingSpaces(ArticleText); //AWB bug bkz w.wiki/9p6C
 		//ArticleText = parser.FixDatesA(ArticleText).Trim();
 		//ArticleText = Parsers.FixCitationTemplates(ArticleText);
+
+		//Tek başına yapılacak kadar önemli değil, ancak değişiklik yapılmışken bunlar da yapılsın
+		if(UneditedArticleText != ArticleText) {
+			ArticleText = ArticleText.Trim();
+
+			Regex regexA = new Regex(@"(\S)\r\n(={1,4}\s*?.*\s*?={1,4})\r\n");
+			if(regexA.Match(ArticleText).Success) ArticleText = regexA.Replace(ArticleText, "$1\n\n$2\n");
+		}
 		
 		return new Tuple<string, string>(ArticleText, summary);
 	}
