@@ -214,7 +214,7 @@
   <ItemGroup>
     <Compile Include="azwiki.cs" />
     <Compile Include="baslik.cs" />
-    <Compile Include="dosya.cs" />
+    <Compile Include="File.cs" />
     <Compile Include="GorunmezKarakter.cs" />
     <Compile Include="Kaynakca.cs" />
     <Compile Include="KaynakCevir.cs" />

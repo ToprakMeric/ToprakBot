@@ -5,9 +5,19 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 public class Upright {
-	public static async Task<float> FileRatio(string file, bool adil) {
+
+	/// <summary>
+	/// Fetches image width & height from Commons (trwiki if fairUse==true)
+	/// and returns the aspect ratio (width / height) as float.
+	/// If adil==true and the smaller side is <= 300px, returns -1 to signal “do not process”.
+	/// On any failure (HTTP / JSON / parse) silently logs and returns -1 width/height ratio result from defaults.
+	/// </summary>
+	/// <param name="file">File name.</param>
+	/// <param name="adil">If true fetches from trwiki, for fair use files.</param>
+	/// <returns>Aspect ratio (float) or -1 (error handling).</returns>
+	public static async Task<float> FileRatio(string file, bool fairUse) {
 		string apiUrl;
-		if (adil) apiUrl = "https://tr.wikipedia.org/w/api.php?action=query&prop=imageinfo&titles=File:" + file + "&iiprop=dimensions&format=json";
+		if (fairUse) apiUrl = "https://tr.wikipedia.org/w/api.php?action=query&prop=imageinfo&titles=File:" + file + "&iiprop=dimensions&format=json";
 		else apiUrl = "https://commons.wikimedia.org/w/api.php?action=query&prop=imageinfo&titles=File:" + file + "&iiprop=dimensions&format=json";
 
 		int imageHeight = -1, imageWidth = -1;
@@ -35,51 +45,57 @@ public class Upright {
 			} catch (Exception ex) { ToprakBot.LogException("U01", ex); }
 
 		}
-		if (adil&&(Math.Min(imageWidth, imageHeight)<=300)) return -1;
+		if (fairUse&&(Math.Min(imageWidth, imageHeight)<=300)) return -1;
 		return (float)imageWidth/imageHeight;
 	}
 
+	/// <summary>
+	/// Scans wiki text for image thumbnails that specify explicit pixel dimensions
+	/// (e.g. [[File:Example.jpg|thumb|200px]]) and converts those size specifications
+	/// into an |upright= value normalized by dividing the calculated width by 220.
+	/// </summary>
+	/// <param name="ArticleText">Wikitext to be proccesed.</param>
+	/// <returns>Proccesed wikitext.</returns>
 	public static string Main(string ArticleText) {
-		Regex Thumb = new Regex(@"\[\[\s*?(Dosya|Resim|File|Image)\:\s*?.*?\s*?\|\s*?(thumb|küçükresim)\s*?.*?\]\]", RegexOptions.IgnoreCase);
-		Regex Pixel = new Regex(@"\|\s*?(\d{0,4})(x(\d{1,4})|)\s*?(pik|px)", RegexOptions.IgnoreCase);
-		Regex RemoveZero = new Regex(@"(\d)(\.00|(\.\d)0)");
-		Regex FileName = new Regex(@"(Dosya|Resim|File|Image)\s*:\s*(.*?)\s*\|", RegexOptions.IgnoreCase);
+		Regex thumb = new Regex(@"\[\[\s*?(Dosya|Resim|File|Image)\:\s*?.*?\s*?\|\s*?(thumb|küçükresim)\s*?.*?\]\]", RegexOptions.IgnoreCase);
+		Regex pixel = new Regex(@"\|\s*?(\d{0,4})(x(\d{1,4})|)\s*?(pik|px)", RegexOptions.IgnoreCase);
+		Regex removeZero = new Regex(@"(\d)(\.00|(\.\d)0)");
+		Regex fileName = new Regex(@"(Dosya|Resim|File|Image)\s*:\s*(.*?)\s*\|", RegexOptions.IgnoreCase);
 
-		if (Thumb.Match(ArticleText).Success) {
+		if (thumb.Match(ArticleText).Success) {
 
-			ArticleText = Thumb.Replace(ArticleText, delegate (Match match) {
-				string DosyaMetin = match.Value, piksel = null;
+			ArticleText = thumb.Replace(ArticleText, delegate (Match match) {
+				string fileText = match.Value, width = null;
 
-				if (Pixel.Match(ArticleText).Success) {
-					var aracı = Pixel.Match(DosyaMetin);
-					var aracı2 = FileName.Match(DosyaMetin);
-					string px1 = aracı.Groups[1].Value;
-					string px2 = aracı.Groups[3].Value;
-					float oran = FileRatio(aracı2.Groups[2].Value, false).Result;
-					
-					if ((px1==px2)&&(px1!=""||px2!="")) {
-						piksel = px1;
-						if (oran<1) {
-							float ara = oran * float.Parse(piksel);
-							piksel = ara.ToString();
-						} else piksel = px1;
+				if (pixel.Match(ArticleText).Success) {
+					var match1 = pixel.Match(fileText);
+					var match2 = fileName.Match(fileText);
+					string px1 = match1.Groups[1].Value;
+					string px2 = match1.Groups[3].Value;
+					float ratio = FileRatio(match2.Groups[2].Value, false).Result;
+
+					//Handle wiki syntax to find used width:
+					if((px1==px2)&&(px1!=""||px2!="")) {
+						width = px1;
+						if (ratio<1) {
+							width = (ratio * float.Parse(width)).ToString();
+						} else width = px1;
 					} else if ((px1=="")&&(px2!="")) {
-						piksel = px2;
-						float ara = oran * float.Parse(piksel);
-						piksel = ara.ToString();
-					} else piksel = px1;
+						width = px2;
+						width = (ratio * float.Parse(width)).ToString();
+					} else width = px1;
 				}
 
-				if (float.TryParse(piksel, out float upright)) {
+				if (float.TryParse(width, out float upright)) {
 					upright = (float)Math.Round(upright/220, 2);
 					string uprightStr = upright.ToString();
 					uprightStr = uprightStr.Replace(",", ".");
 
-					if(RemoveZero.Match(uprightStr).Success) uprightStr = RemoveZero.Replace(uprightStr, "$1$3");
+					if (removeZero.Match(uprightStr).Success) uprightStr = removeZero.Replace(uprightStr, "$1$3");
 
-					DosyaMetin = Pixel.Replace(DosyaMetin, "|upright=" + uprightStr);
+					fileText = pixel.Replace(fileText, "|upright=" + uprightStr);
 
-					return DosyaMetin;
+					return fileText;
 				} else return match.Value;
 			});
 		}
