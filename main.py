@@ -1,20 +1,13 @@
-#ToprakBot Python modülü
-#Burada C# ile yapmayı beceremediğim kısımları ekliyorum.
+#ToprakBot Python module
+#These are what I couldn't manage to do with C#.
 #This program includes code adapted from the work of David (https://stackoverflow.com/users/4998865/david)
 #available under the Creative Commons Attribution-ShareAlike 3.0 license (CC-BY-SA 3.0). The original code
 #can be found at https://stackoverflow.com/a/41536728.
 import requests
 import sys
-def get_edit_token(cookies):
-	edit_token_response=requests.post(api_url, data={'action': 'query',
-		'format': 'json',
-		'meta': 'tokens'}, cookies=cookies)
-	#print("CSRF Token:", edit_token_response.json()['query']['tokens']['csrftoken'])
-	return edit_token_response.json()['query']['tokens']['csrftoken']
 
 api_url = 'https://tr.wikipedia.org/w/api.php'
 
-print(sys.argv[4])
 if sys.argv[4] == "1":
 	with open("D:\\AWB\\password.txt", "r") as file:
 		password = file.read()
@@ -24,22 +17,32 @@ elif sys.argv[4] == "0":
 
 USER,PASS = u'ToprakBot@aws', password
 USER_AGENT='ToprakBot (https://meta.wikimedia.org/wiki/User:ToprakBot; toprak@tprk.tr) Python/3'
+headers = {'User-Agent': USER_AGENT}
+
+def get_edit_token(cookies):
+	edit_token_response=requests.post(api_url, data={'action': 'query',
+		'format': 'json',
+		'meta': 'tokens'}, cookies=cookies, headers=headers)
+	#print("CSRF Token:", edit_token_response.json()['query']['tokens']['csrftoken'])
+	return edit_token_response.json()['query']['tokens']['csrftoken']
 
 payload = {'action': 'query', 'format': 'json', 'utf8': '',
 		   'meta': 'tokens', 'type': 'login'}
 
-r1 = requests.post(api_url, data=payload)
+r1 = requests.post(api_url, data=payload, headers=headers)
 login_token=r1.json()['query']['tokens']['logintoken']
 
 login_payload = {'action': 'login', 'format': 'json', 'utf8': '',
 	'lgname': USER, 'lgpassword': PASS, 'lgtoken': login_token}
 
-r2 = requests.post(api_url, data=login_payload, cookies=r1.cookies)
+r2 = requests.post(api_url, data=login_payload, cookies=r1.cookies, headers=headers)
 cookies = r2.cookies.copy()
-headers = {'User-Agent': USER_AGENT}
 
 if sys.argv[3] == "upload":
-	FILENAME='D:\\ResizedImage' + sys.argv[2]
+	if sys.argv[4] == "1":
+		FILENAME='D:\\ResizedImage' + sys.argv[2]
+	elif sys.argv[4] == "0":
+		FILENAME = 'C:\\Users\\Administrator\\Desktop\\file\\ResizedImage' + sys.argv[2]
 	SUMMARY="Dosya çözünürlüğü düşürülüyor"
 	REMOTENAME = sys.argv[1]
 
@@ -53,7 +56,7 @@ if sys.argv[3] == "upload":
 
 	files = {'file': (REMOTENAME, open(FILENAME, 'rb'))}
 	upload_response = requests.post(api_url, data=upload_payload, files=files, cookies=cookies, headers=headers)
-	print("Yüklendi")
+	print("Upload was successful.")
 	#print(upload_response.text)
 
 elif sys.argv[3] == "revdel":
@@ -71,5 +74,5 @@ elif sys.argv[3] == "revdel":
 		'token': get_edit_token(cookies)}
 
 	revision_delete_response = requests.post(api_url, data=revision_delete_payload, cookies=cookies, headers=headers)
-	print("Sürüm gizlendi")
+	print("Revision delete was successful.")
 	#print(revision_delete_response.text)
