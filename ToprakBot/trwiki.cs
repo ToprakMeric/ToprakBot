@@ -75,7 +75,7 @@ public class Trwiki {
 			if (hatalıkorumaşablist.Contains(sayfa)) {
 				bool protectionStatus = await ToprakBot.GetProtectionStatus(sayfa, ToprakBot.wiki);
 				if (!protectionStatus) {
-					Regex koruma = new Regex(@"(?:\/\*)?\s*(?:<noinclude>)?\s*\{\{\s*(koruma|koruma-|pp-|yarı koruma)[^{}]*?\s*?\}\}\s*(?:<\/noinclude>)?\s*(?:\*\/)?\s*", RegexOptions.IgnoreCase | RegexOptions.Multiline);
+					Regex koruma = new Regex(@"(?:\/\*)?\s*(?:<noinclude>)?\s*\{\{\s*(koruma|koruma-|pp(?:-|)|yarı koruma)[^{}]*?\s*?\}\}\s*(?:<\/noinclude>)?\s*(?:\*\/)?\s*", RegexOptions.IgnoreCase | RegexOptions.Multiline);
 					ArticleText = koruma.Replace(ArticleText, "");
 					ekozet += "; lüzumsuz koruma şablonu kaldırıldı";
 				} else {

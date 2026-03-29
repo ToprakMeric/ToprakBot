@@ -15,7 +15,7 @@ using System.Text;
 using System.Diagnostics;
 
 public class ToprakBot {
-	public static bool manual = false; //Sayfa listesini false ise API'den, true ise txt dosyadan alır
+	public static bool manual = true; //Sayfa listesini false ise API'den, true ise txt dosyadan alır
 	public static bool makine = false; //Çalıştığı yere göre dosya konumlarını seçer, true ise makine false ise pc konumları
 	public static string wiki = "tr.wikipedia";
 	public static string wiki2 = "az.wikipedia";
@@ -38,21 +38,21 @@ public class ToprakBot {
 		Console.ForegroundColor = ConsoleColor.White;
 		Console.WriteLine("trwiki");
 		await Trwiki.trwiki();	// yeni madde dz
-		await ImageTest.FairUse();	// adil kullanım dosya dz
+		//await ImageTest.FairUse();	// adil kullanım dosya dz
 
 		Console.ForegroundColor = ConsoleColor.White;
 		Console.WriteLine("------\ntrwiki 5k");
-		await Trwiki.trwiki5k(); //5k madde dz
+		//await Trwiki.trwiki5k(); //5k madde dz
 
 		//azwiki
 		Console.ForegroundColor = ConsoleColor.White;
 		Console.WriteLine("------\nazwiki");
-		await Azwiki.azwiki();	// yeni madde dz
+		//await Azwiki.azwiki();	// yeni madde dz
 
 		//kawiki
 		Console.ForegroundColor = ConsoleColor.White;
 		Console.WriteLine("------\nkawiki");
-		await Kawiki.kawiki();	// yeni madde dz
+		//await Kawiki.kawiki();	// yeni madde dz
 
 		Console.ForegroundColor = ConsoleColor.White;
 		Console.WriteLine("Bitti.");
