@@ -102,7 +102,7 @@ public class Baslik {
 				return word.ToLower(new CultureInfo("en-US"));
 		}
 		if (lang=="tr"||lang=="enx") {
-			Regex soru = new Regex(@"^M[iıuü]");
+			Regex soru = new Regex(@"^M[iıuü]$");
 			if (soru.IsMatch(word)||word=="İle"||word=="Ve"||word=="Ya"||word=="Da"||word=="De"||word=="Ki")
 				return word.ToLower(new CultureInfo("tr-TR"));
 		}
