@@ -202,7 +202,8 @@ public class ToprakBot {
 		return 0;
 	}
 
-	public static void LogException(string code, Exception ex) {
+    //Hata loglama fonksiyonu 
+    public static void LogException(string code, Exception ex) {
 		Trace.WriteLine($"{DateTime.Now} ({code}): Exception: {ex.GetType().FullName}");
 		Trace.WriteLine($"Message: {ex.Message}");
 		Trace.WriteLine($"StackTrace: {ex.StackTrace}");

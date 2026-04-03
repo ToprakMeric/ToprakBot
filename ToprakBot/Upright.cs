@@ -6,15 +6,8 @@ using System.Threading.Tasks;
 
 public class Upright {
 
-	/// <summary>
-	/// Fetches image width & height from Commons (trwiki if fairUse==true)
-	/// and returns the aspect ratio (width / height) as float.
-	/// If adil==true and the smaller side is <= 300px, returns -1 to signal “do not process”.
-	/// On any failure (HTTP / JSON / parse) silently logs and returns -1 width/height ratio result from defaults.
-	/// </summary>
-	/// <param name="file">File name.</param>
-	/// <param name="adil">If true fetches from trwiki, for fair use files.</param>
-	/// <returns>Aspect ratio (float) or -1 (error handling).</returns>
+	// Fetches image width & height from desired wiki
+	// and returns the aspect ratio (width/height) as float.
 	public static async Task<float> FileRatio(string file, bool fairUse) {
 		string apiUrl;
 		if (fairUse) apiUrl = "https://tr.wikipedia.org/w/api.php?action=query&prop=imageinfo&titles=File:" + file + "&iiprop=dimensions&format=json";
@@ -49,14 +42,9 @@ public class Upright {
 		return (float)imageWidth/imageHeight;
 	}
 
-	/// <summary>
-	/// Scans wiki text for image thumbnails that specify explicit pixel dimensions
-	/// (e.g. [[File:Example.jpg|thumb|200px]]) and converts those size specifications
-	/// into an |upright= value normalized by dividing the calculated width by 220.
-	/// </summary>
-	/// <param name="ArticleText">Wikitext to be proccesed.</param>
-	/// <returns>Proccesed wikitext.</returns>
-	public static string Main(string ArticleText) {
+    /// Scans the text for image thumbnails that specify explicit pixel dimensions
+    /// and converts them into |upright= value by dividing the used width by 220
+    public static string Main(string ArticleText) {
 		Regex thumb = new Regex(@"\[\[\s*?(Dosya|Resim|File|Image)\:\s*?.*?\s*?\|\s*?(thumb|küçükresim)\s*?.*?\]\]", RegexOptions.IgnoreCase);
 		Regex pixel = new Regex(@"\|\s*?(\d{0,4})(x(\d{1,4})|)\s*?(pik|px)", RegexOptions.IgnoreCase);
 		Regex removeZero = new Regex(@"(\d)(\.00|(\.\d)0)");

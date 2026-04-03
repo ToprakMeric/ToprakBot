@@ -2,29 +2,26 @@
 using System.Text.RegularExpressions;
 
 public class Kaynakca {
+    //Kaynak varsa ancak kaynakça şablonu veya başlığı yoksa ekler
+
 	//tr
-	public static Tuple<string, string> Tr(string ArticleText) {
+    public static Tuple<string, string> Tr(string ArticleText) {
 		string summary = "";
 
-		//Ref tag bulur, sonuçta kaynak yoksa kaynakça da eklenmez
 		Regex reftag = new Regex(@"<\s*?ref.*?>", RegexOptions.Singleline);
 
-		//Başlığın yerini belirleme regex
 		Match kat = Regex.Match(ArticleText, @"\[\[[kc]ategor[yi]\s*?:", RegexOptions.IgnoreCase);
 		Match disbag = Regex.Match(ArticleText, @"==\s*?d[ıiİ][Şşs]\s*ba[Ğğg]lant[İiı]lar\s*?==", RegexOptions.IgnoreCase);
 		Match taslak = Regex.Match(ArticleText, @"{{(?:.{1,}\-|)taslak\s*?}}", RegexOptions.IgnoreCase);
 
-		//Sayfada kaynakça şablonu var mı regex - bulursa atlar
 		Regex kaynaksablon = new Regex(@"\{\{\s*(kaynakça|reflist|references|reference|kaynak listesi|referanslar|refs)\s*(\||\}\})", RegexOptions.IgnoreCase);
 		Regex reflisttag = new Regex(@"<\s*references\s*(\/|)\s*\>");
 
-		//Sayfada kaynakça başlığı var mı regex
 		Regex kaynakca1 = new Regex(@"(kaynak[çÇ]a|==\s*?kaynak\s*?==)", RegexOptions.IgnoreCase);
 		Regex kaynakca2 = new Regex(@"references", RegexOptions.IgnoreCase);
 		Regex kaynakca3 = new Regex(@"==\s*referans(lar)\s*==", RegexOptions.IgnoreCase);
 		Regex kaynakca4 = new Regex(@"==\s*kaynaklar\s*==", RegexOptions.IgnoreCase);
 
-		//Başlık var ama şablon yok regex - şablonu eklemek için
 		Regex baslikvekat = new Regex(@"\={2,}\s*(?:Kaynakça|Kaynaklar)\s*\={2,}(?:\r\n){1,}\[\[(Kategori|Category)\:\s*", RegexOptions.Singleline);
 		Regex baslikveson = new Regex(@"\={2,}\s*(?:Kaynakça|Kaynaklar)\s*\={2,}\s*?\Z", RegexOptions.IgnoreCase);
 		Regex baslikvebaslik = new Regex(@"(\={2,}\s*(?:Kaynakça|Kaynaklar)\s*\={2,})\s*?\r\n(\={2,}.*?\={2,})\r\n", RegexOptions.IgnoreCase);
@@ -59,23 +56,18 @@ public class Kaynakca {
 	public static Tuple<string, string> Az(string ArticleText) {
 		string summary = "";
 
-		//Ref tag bulur, sonuçta kaynak yoksa kaynakça da eklenmez
 		Regex reftag = new Regex(@"<\s*?ref.*?>", RegexOptions.Singleline);
 		
-		//Başlığın yerini belirleme regex
 		Match kat = Regex.Match(ArticleText, @"\[\[(?:category|kateqoriya)\s*?:", RegexOptions.IgnoreCase);
 		Match disbag = Regex.Match(ArticleText, @"==\s*?xar[iİ]c[iİ]\s* ke[çÇ][iİ]dl[əƏ]r\s*?==", RegexOptions.IgnoreCase);
 		Match taslak = Regex.Match(ArticleText, @"{{(?:.{1,}\-|)qaralama\s*?}}", RegexOptions.IgnoreCase);
 
-		//Sayfada kaynakça şablonu var mı regex - bulursa atlar
 		Regex kaynaksablon = new Regex(@"\{\{\s*([İi]stinadlar|[İi]stinad siyahısı|[İi]stinadlar siyahısı|reflist|references|reference|refs)\s*(\||\}\})", RegexOptions.IgnoreCase);
 		Regex reflisttag = new Regex(@"<\s*references\s*(\/|)\s*\>");
 
-		//Sayfada kaynakça başlığı var mı regex
 		Regex kaynakca1 = new Regex(@"([iİ]stinadlar|==\s*?[iİ]stinad\s*?==)", RegexOptions.IgnoreCase);
 		Regex kaynakca2 = new Regex(@"references", RegexOptions.IgnoreCase);
 
-		//Başlık var ama şablon yok regex - şablonu eklemek için
 		Regex baslikvekat = new Regex(@"\={2,}\s*[İi]stinadlar\s*\={2,}(?:\r\n){1,}\[\[(Kateqoriya|Category)\:\s*", RegexOptions.Singleline);
 		Regex baslikveson = new Regex(@"\={2,}\s*[İi]stinadlar\s*\={2,}\s*?\Z", RegexOptions.IgnoreCase);
 		Regex baslikvebaslik = new Regex(@"(\={2,}\s*[İi]stinadlar\s*\={2,})\s*?\r\n(\={2,}.*?\={2,})\r\n", RegexOptions.IgnoreCase);
@@ -110,21 +102,16 @@ public class Kaynakca {
 	public static Tuple<string, string> Ka(string ArticleText) {
 		string summary = "";
 
-		//Ref tag bulur, sonuçta kaynak yoksa kaynakça da eklenmez
 		Regex reftag = new Regex(@"<\s*?ref.*?>", RegexOptions.Singleline);
 		
-		//Başlığın yerini belirleme regex
 		Match kat = Regex.Match(ArticleText, @"\[\[(?:category|კატეგორია)\s*?:", RegexOptions.IgnoreCase);
 
-		//Sayfada kaynakça şablonu var mı regex - bulursa atlar
 		Regex kaynaksablon = new Regex(@"\{\{\s*(სქოლიოს სია|reflist|references)\s*(\||\}\})", RegexOptions.IgnoreCase);
 		Regex reflisttag = new Regex(@"<\s*references\s*(\/|)\s*\>");
 
-		//Sayfada kaynakça başlığı var mı regex
 		Regex kaynakca1 = new Regex(@"(სქოლიო|==\s*?სქოლიო\s*?==)");
 		Regex kaynakca2 = new Regex(@"references", RegexOptions.IgnoreCase);
 
-		//Başlık var ama şablon yok regex - şablonu eklemek için
 		Regex baslikvekat = new Regex(@"\=\=\s*სქოლიო\s*\=\=\r\n\[\[(კატეგორია|Category)\:\s*", RegexOptions.Singleline);
 		Regex baslikveson = new Regex(@"\={2,}\s*სქოლიო\s*\={2,}\s*?\Z", RegexOptions.IgnoreCase);
 		Regex baslikvebaslik = new Regex(@"(\={2,}\s*სქოლიო\s*\={2,})\s*?\r\n(\={2,}.*?\={2,})\r\n", RegexOptions.IgnoreCase);

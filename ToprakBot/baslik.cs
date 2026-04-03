@@ -4,7 +4,8 @@ using System.Text.RegularExpressions;
 using WikiFunctions.Parse;
 
 public class Baslik {
-	public static string Main(string ArticleText) {
+    //Kaynak şablonlanlarını bulur (şablon içi şablonlar hariç) ve başlığı title case yapmaya gönderir
+    public static string Main(string ArticleText) {
 		List<string> sablonlar = Parsers.GetAllTemplateDetail(ArticleText);
 		Regex kaynakbaslik = new Regex(@"(\{\{\s*?(?:[\p{L}]*? kaynağı|[Kk]aynak\s*?\||[Cc]ite [\p{L}]?).*?\|\s*?(?:başlık|title)\s*?\=[^\p{L}]*)([\p{Lu}\W\d]*?)([^\p{L}]*(?:\||\}\}))");
 		Regex sablonicisablon = new Regex(@"\{\{(?:[^{}]*\{\{[^{}]*\}\}[^{}]*){1,}");
@@ -20,7 +21,8 @@ public class Baslik {
 		return ArticleText;
 	}
 
-	public static string Hallet(string baslik) {
+    //Başlık büyük harflerden oluşuyorsa ve içinde küçük harf yoksa title case yapar
+    public static string Hallet(string baslik) {
 		Regex buyukharf = new Regex(@"^[\p{Lu}\W\d]+$");
 		Regex kucukharf = new Regex(@"[\p{Ll}]");
 		Regex separatorRegex = new Regex(@"[^a-zA-Z\p{L}]+");
@@ -68,8 +70,8 @@ public class Baslik {
 			baslik = "";
 			for (int i = 0; i < kelime.Length; i++) {
 				string word = kelime[i];
-				if (roma.Match(word).Success) modifiedWords[i] = word;
-				else if (word == "ST"||word == "ND"||word == "RD"||word=="TH") modifiedWords[i] = word.ToLower(new CultureInfo("en-US"));
+				if (roma.Match(word).Success) modifiedWords[i] = word; //roma rakamlarını değiştirme
+                else if (word == "ST"||word == "ND"||word == "RD"||word=="TH") modifiedWords[i] = word.ToLower(new CultureInfo("en-US"));
 				else if (lang=="en"||lang=="enx") modifiedWords[i] = char.ToUpper(word[0]) + word.Substring(1).ToLower(new CultureInfo("en-US"));
 				else modifiedWords[i] = char.ToUpper(word[0]) + word.Substring(1).ToLower(new CultureInfo("tr-TR"));
 				if (i!=0) modifiedWords[i] = Cevirmen(modifiedWords[i], lang);
@@ -86,19 +88,22 @@ public class Baslik {
 		return baslik;
 	}
 
-	public static string Cevirmen(string word, string lang) {
-		if (lang=="en"||lang=="enx") {
-			if (word == "A" || word == "An" || word == "The" ||
+    //İstisna bağlaçları, edatları vs küçük harfe çevirir
+    public static string Cevirmen(string word, string lang) {
+        //bunlar title case istina, küçük harf
+		//todo: alfabetik & eksik kontrolü
+        if(lang=="en"||lang=="enx") {
+			if (word == "A" || word == "An" || word == "As" || word == "The" ||
 				word == "And" || word == "Or" || word == "But" || word == "Nor" ||
 				word == "In" || word == "On" || word == "At" || word == "By" || 
 				word == "For" || word == "To" || word == "With" || word == "From" || 
-				word == "Into" || word == "Onto" || word == "Upon" || word == "Within" || 
-				word == "Without" || word == "Of")
+				word == "Into" || word == "Onto" || word == "Up" || word == "Upon" || word == "Within" || 
+				word == "Without" || word == "Of" || word == "Versus" )
 				return word.ToLower(new CultureInfo("en-US"));
 		}
 		if (lang=="tr"||lang=="enx") {
 			Regex soru = new Regex(@"^M[iıuü]");
-			if (!soru.Match(word).Success&&(word=="İle"||word=="Ve"||word=="Ya"||word=="Da"||word=="De"||word=="Ki"))
+			if (soru.IsMatch(word)||word=="İle"||word=="Ve"||word=="Ya"||word=="Da"||word=="De"||word=="Ki")
 				return word.ToLower(new CultureInfo("tr-TR"));
 		}
 		return word;

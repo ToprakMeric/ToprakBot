@@ -2,7 +2,8 @@
 using System.Text.RegularExpressions;
 
 public class NotListesi {
-	public static Tuple<string, string> Main(string ArticleText) {
+    // Gerekliyse not listesi başlığı ekler
+    public static Tuple<string, string> Main(string ArticleText) {
 		string summary = "";
 		Regex şablon = new Regex(@"{{\s*?(efn|adn|adn\-la|adş)\s*?(\||\})", RegexOptions.IgnoreCase);
 		Regex notlistesi = new Regex(@"{{\s*?(not\slistesi|notlar|notes|notelist)\s*?(\||\})", RegexOptions.IgnoreCase);

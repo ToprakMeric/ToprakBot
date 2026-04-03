@@ -1,39 +1,10 @@
 ﻿using System.Text.RegularExpressions;
 
 public class KaynakCevir {
-	static string Tercuman(string eskiay) {
-		switch (eskiay.ToLower()) {
-			case "january":
-			   return "Ocak";
-			case "february":
-				return "Şubat";
-			case "march":
-				return "Mart";
-			case "april":
-				return "Nisan";
-			case "may":
-				return "Mayıs";
-			case "june":
-				return "Haziran";
-			case "july":
-				return "Temmuz";
-			case "august":
-				return "Ağustos";
-			case "september":
-				return "Eylül";
-			case "october":
-				return "Ekim";
-			case "november":
-				return "Kasım";
-			case "december":
-				return "Aralık";
-			default:
-				return string.Empty;
-	}
-}
-
-	public static string Main(string ArticleText) {
-		//tarih - çeviri
+    //Kaynaklardaki tarihleri Türkçeye çevirir. Ayrıca basım bilgisi varsa onu da çevirir.
+    public static string Main(string ArticleText) {
+		
+		//tarih çevirileri:
 		//January 23, 2021
 		Regex tarihRegex1 = new Regex(@"(\s*?\|\s*?(erişim(\-|\s|)tarihi|tarih|access(\-|\s|)date|accessdate|date|archive(\-|)date|arşiv(\-|)tarihi)\s*?\=\s*?)(January|February|March|April|May|June|July|August|September|October|November|December)\s*?(\d{1,2})\s*?(,|)\s*?(\d{4})", RegexOptions.IgnoreCase);
 		ArticleText = tarihRegex1.Replace(ArticleText, match => {
@@ -112,7 +83,7 @@ public class KaynakCevir {
 			return match.Groups[1].Value + gun + " " + ay + " " + match.Groups[7].Value;
 		});
 
-		//tarih - düzelt
+		//tarih düzeltmeleri:
 		//21 Ocak, 2021 ve Ocak, 2021
 		Regex tarihRegex4 = new Regex(@"(\s*?\|\s*?(erişim(\-|\s|)tarihi|tarih|access(\-|\s|)date|accessdate|date|archive(\-|)date|arşiv(\-|)tarihi)\s*?\=\s*?)(\d{1,2}|)\s*?(Ocak|Şubat|Mart|Nisan|Mayıs|Haziran|Temmuz|Ağustos|Eylül|Ekim|Kas[Iı]m|Aral[Iı]k)\s*?\,\s*?(\d{4})\s*?", RegexOptions.IgnoreCase);
 		ArticleText = tarihRegex4.Replace(ArticleText, match => {
@@ -148,7 +119,7 @@ public class KaynakCevir {
 			return match.Groups[1].Value + match.Groups[7].Value + " " + match.Groups[8].Value + " " + match.Groups[9].Value;
 		});
 
-		//basım
+		//basım çevirici
 		Regex basımçekici = new Regex(@"\|\s*?basım\s*?\=\s*?((\d{1,2})(st|nd|rd|th))\s*?(\||\}\})", RegexOptions.IgnoreCase);
 		ArticleText = basımçekici.Replace(ArticleText, match => {
 			string basım = match.Groups[1].Value;
@@ -159,5 +130,37 @@ public class KaynakCevir {
 			return "|basım=" + basım + match.Groups[4].Value;
 		});
 		return ArticleText;
+	}
+
+    //İngilizce ay Türkçe çeviriler
+    static string Tercuman(string eskiay) {
+		switch (eskiay.ToLower()) {
+			case "january":
+			   return "Ocak";
+			case "february":
+				return "Şubat";
+			case "march":
+				return "Mart";
+			case "april":
+				return "Nisan";
+			case "may":
+				return "Mayıs";
+			case "june":
+				return "Haziran";
+			case "july":
+				return "Temmuz";
+			case "august":
+				return "Ağustos";
+			case "september":
+				return "Eylül";
+			case "october":
+				return "Ekim";
+			case "november":
+				return "Kasım";
+			case "december":
+				return "Aralık";
+			default:
+				return string.Empty;
+		}
 	}
 }

@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 public class GorunmezKarakter {
-	public static Tuple<string, string> Main(string ArticleText, string ArticleTitle, string lang) {
+    //Görünmez karakterleri fark edilebilir kılma ve gereksiz görünmez karakterleri kaldırma
+    public static Tuple<string, string> Main(string ArticleText, string ArticleTitle, string lang) {
 		string summary = "";
 
 		List<string> karakterler = new List<string>();

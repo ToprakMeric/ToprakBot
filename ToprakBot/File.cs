@@ -148,15 +148,7 @@ public class ImageTest {
 		}
 	}
 
-	/// <summary>
-	/// Retrieves list of files to be processed from the category.
-	/// </summary>
-	/// <remarks>
-	/// Maximum number of files to be retrieved per run is determined by <c>runLimit</c> variable.
-	/// </remarks>
-	/// <returns>
-	/// List containing the full titles of the target files (e.g., "File:Example.png").
-	/// </returns>
+	// Retrieves list of files to be processed from the category.
 	public static async Task<List<string>> FairUseList() {
 		int runLimit = 10; //max num of files to handle per run
 		List<string> titles = new List<string>();
@@ -174,11 +166,7 @@ public class ImageTest {
 		return titles;
 	}
 
-	/// <summary>
-	/// Downloads an image from the specified URL using HttpClient.
-	/// </summary>
-	/// <param name="url">Direct URL of the image resource to download.</param>
-	/// <returns>Byte array containing the image data on success.</returns>
+	// Downloads an image from the specified URL using HttpClient.
 	public static async Task<byte[]> DownloadImage(string url) {
 		using (HttpClient client = new HttpClient()) {
 			client.DefaultRequestHeaders.Add("User-Agent", ToprakBot.userAgent);
@@ -188,15 +176,7 @@ public class ImageTest {
 		}
 	}
 
-	/// <summary>
-	/// Resizes an image (provided as a byte array) to the specified dimensions.
-	/// </summary>
-	/// <param name="imageBytes">Source image as a byte array.</param>
-	/// <param name="newWidth">Target width in pixels.</param>
-	/// <param name="newHeight">Target height in pixels.</param>
-	/// <returns>
-	/// A Bitmap object containing the resized image.
-	/// </returns>
+	// Resizes an image to the specified dimensions.
 	public static Bitmap ResizeImage(byte[] imageBytes, int newWidth, int newHeight) {
 		try {
 			using (MemoryStream ms = new MemoryStream(imageBytes)) {
@@ -213,12 +193,7 @@ public class ImageTest {
 		} catch (Exception ex) { ToprakBot.LogException("D09", ex); return null; }
 	}
 
-	/// <summary>
-	/// Invokes the external Python script to upload the locally resized image to the target wiki.
-	/// </summary>
-	/// <param name="file">Title of the file without the namespace prefix</param>
-	/// <param name="extension">Original file extension (e.g. ".png", ".jpg")</param>
-	/// <returns>None.</returns>
+	// Invokes the external Python script to upload the locally stored resized image
 	public static void PythonUpload(string file, string extension) {
 		string pythonScriptPath;
 		if (ToprakBot.makine) pythonScriptPath = @"C:\Users\Administrator\Desktop\test.py";
@@ -246,13 +221,8 @@ public class ImageTest {
 		} catch (Exception ex) { ToprakBot.LogException("D10", ex); }
 	}
 
-	/// <summary>
-	/// Invokes the external Python script to revision-delete a specific version of a file.
-	/// </summary>
-	/// <param name="file">Title of the file without namespace</param>
-	/// <param name="id">File version timestamp to be deleted.</param>
-	/// <returns>None.</returns>
-	/// <remarks>MediaWiki uses timestamps for file history instead of regular revision IDs.</remarks>
+	// Invokes the external Python script to revision-delete a specific version of a file.
+	// MediaWiki uses timestamps for file history instead of regular revision IDs.
 	public static void PythonRevDel(string file, string id) {
 		string pythonScriptPath;
 		if (ToprakBot.makine) pythonScriptPath = @"C:\Users\Administrator\Desktop\test.py";
