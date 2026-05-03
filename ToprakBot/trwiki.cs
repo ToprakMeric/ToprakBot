@@ -11,7 +11,7 @@ public class Trwiki {
 
 	public static ApiEdit editor = new ApiEdit("https://" + ToprakBot.wiki + ".org/w/");
 
-	//trwiki de yeni oluşturulan sayfalar burada düzenlenir.
+	//edits pages in trwiki.
 	public static async Task trwiki() {
 		try {
 			ToprakBot.login(editor);
@@ -60,18 +60,18 @@ public class Trwiki {
 			int NameSpace = await ToprakBot.NameSpaceDedector(sayfa);
 
 			try {
-				ArticleText = editor.Open(sayfa); //içeriği alıyor
+				ArticleText = editor.Open(sayfa); //get content of the page
 			} catch(Exception ex) { ToprakBot.LogException("T02", ex); continue; }
 			madde = ArticleText;
 
 			Regex degistirmemeli = new Regex(@"\{\{\s*?(sil|çalışma|bekletmeli sil)\s*?(\||\}\})", RegexOptions.IgnoreCase);
-			if ((!degistirmemeli.Match(ArticleText).Success)&&(NameSpace == 0)) { //Sadece ana ad alanı, diğer ad alanı kodları için bkz Special:NamespaceInfo
+			if ((!degistirmemeli.Match(ArticleText).Success)&&(NameSpace == 0)) { //make edits in only main namespace.
 				var tuple = tredit(ArticleText, sayfa);
 				ArticleText = tuple.Item1;
 				ekozet = tuple.Item2;
 			}
 
-			//Lüzumsuz koruma şablonu kaldır
+			//Remove unnecessary protection templates.
 			if (hatalıkorumaşablist.Contains(sayfa)) {
 				bool protectionStatus = await ToprakBot.GetProtectionStatus(sayfa, ToprakBot.wiki);
 				if (!protectionStatus) {
@@ -103,10 +103,14 @@ public class Trwiki {
 		sw.Close();
 	}
 
-	//Türkçe Vikipedi'de ana ad alanında yaklaşık 1 milyon sayfa var (yönlendirme, anlam ayrımı vs. dahil)
-	//Bunun listesini AWB ile alıp 5kliste.txt olarak oluşturdum. //to-do: liste bittiyse yeniden oluşturacak
-	//Araç her gün 5 bin sayfa alarak onları tarıyor, bazı değişiklikler yapıyor.
-	//Bütün viki yaklaşık her 200 günde bir taranmış olacak.
+	/*
+	 * There are approximately 1 million pages in the main namespace of the Turkish Wikipedia (including redirects, disambiguations, etc.).
+	 * This list was fetched using AWB and saved as '5kliste.txt'. 
+	 * todo: Recreate the list once it is completely processed.
+	 * 
+	 * The tool fetches and scans 5,000 pages daily.
+	 * At this rate, the entire wiki is fully scanned approximately every 200 days.
+	 */
 	public static async Task trwiki5k() {
 		try {
 			ToprakBot.login(editor);
@@ -168,7 +172,6 @@ public class Trwiki {
 			Regex degistirmemeli = new Regex(@"\{\{\s*?(sil|çalışma|bekletmeli sil)\s*?(\||\}\})", RegexOptions.IgnoreCase);
 			if ((!degistirmemeli.Match(ArticleText).Success)&&(NameSpace == 0)) { //Sadece ana ad alanı, diğer ad alanı kodları için bkz VP:İA
 				
-				//Yapılacak değişiklikler
 				ArticleText = Upright.Main(ArticleText);
 
 				var tuple = Kaynakca.Tr(ArticleText);
@@ -205,11 +208,12 @@ public class Trwiki {
 		sw.Close();
 	}
 
-	//Düzenlenecek yeni sayfa buraya düşüyor. Sayfada yapılacak değişiklikler burada yapılıyor.
+	//pages are routed here. Edits are applied and returned.
 	public static Tuple<string, string> tredit(string ArticleText, string ArticleTitle) {
 		string summary = "";
 		string UneditedArticleText = ArticleText;
 
+		//ArticleText = BaslikAI.Main(ArticleText);
 		ArticleText = Baslik.Main(ArticleText);
 
 		ArticleText = Upright.Main(ArticleText);
@@ -277,7 +281,7 @@ public class Trwiki {
 		ArticleText = Parsers.TemplateRedirects(ArticleText, WikiRegexes.TemplateRedirects);
 		ArticleText = Parsers.RenameTemplateParameters(ArticleText, WikiRegexes.RenamedTemplateParameters);
 
-		//AWB düzeltmeleri
+		//AWB functions
 		Parsers parser = new Parsers(500, false);
 		ArticleText = Parsers.FixTemperatures(ArticleText);
 		ArticleText = parser.FixBrParagraphs(ArticleText).Trim();
@@ -296,12 +300,12 @@ public class Trwiki {
 		ArticleText = Parsers.SameRefDifferentName(ArticleText);
 		ArticleText = Parsers.RefsAfterPunctuation(ArticleText);
 		ArticleText = Parsers.ReorderReferences(ArticleText);
-		//ArticleText = parser.SortMetaData(ArticleText, ArticleTitle); //defaultshort yapıyor yapmasın
-		//ArticleText = parser.FixNonBreakingSpaces(ArticleText); //AWB bug bkz w.wiki/9p6C
+		//ArticleText = parser.SortMetaData(ArticleText, ArticleTitle); //defaultshort no
+		//ArticleText = parser.FixNonBreakingSpaces(ArticleText); //AWB bug see w.wiki/9p6C
 		//ArticleText = parser.FixDatesA(ArticleText).Trim();
 		//ArticleText = Parsers.FixCitationTemplates(ArticleText);
 
-		//Tek başına yapılacak kadar önemli değil, ancak değişiklik yapılmışken bunlar da yapılsın
+		// Minor fixes: Not worth a standalone edit
 		if(UneditedArticleText != ArticleText) {
 			ArticleText = ArticleText.Trim();
 

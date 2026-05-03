@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 
 public class YalinURL {
-    //Uygun yerlere Yalın URL'leri temizle ve Satır içi yalın URL bakım şablonlarını ekler
+    //Inserts bare URL cleanup templates
 	//todo: ayın kategorisi yoksa oluştur, boşsa sil
     public static Tuple<string, string> Main(string ArticleText) {
 		string summary = "";

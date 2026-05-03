@@ -15,15 +15,15 @@ using System.Text;
 using System.Diagnostics;
 
 public class ToprakBot {
-	public static bool manual = false; //Sayfa listesini false ise API'den, true ise txt dosyadan alır
-	public static bool makine = false; //Çalıştığı yere göre dosya konumlarını seçer, true ise makine false ise pc konumları
+	public static bool manual = false; //if false page list retrieved from API, if true from local txt file
+    public static bool makine = false; //sets file paths based on environment true = machine, false = my pc
 	public static string wiki = "tr.wikipedia";
 	public static string wiki2 = "az.wikipedia";
 	public static string wiki3 = "ka.wikipedia";
 
 	public const string userAgent = "ToprakBot/1.7 (https://meta.wikimedia.org/wiki/User:ToprakBot; toprak@tprk.tr) C#/.NET";
 
-	//Giriş: kod çalışmaya buradan başlıyor.
+	// Entry: Execution starts here.
 	public static async Task Main(string[] args) {
 
 		//log listener
@@ -37,30 +37,31 @@ public class ToprakBot {
 		//trwiki
 		Console.ForegroundColor = ConsoleColor.White;
 		Console.WriteLine("trwiki");
-		await Trwiki.trwiki();	// yeni madde dz
-		await ImageTest.FairUse();	// adil kullanım dosya dz
+		await Trwiki.trwiki();	// new articles
+		await ImageTest.FairUse();  // fair use image reduce quality
 
-		Console.ForegroundColor = ConsoleColor.White;
+        Console.ForegroundColor = ConsoleColor.White;
 		Console.WriteLine("------\ntrwiki 5k");
-		await Trwiki.trwiki5k(); //5k madde dz
-
+		await Trwiki.trwiki5k(); // daily 5k articles to review all articles in a year or so
+		
 		//azwiki
 		Console.ForegroundColor = ConsoleColor.White;
 		Console.WriteLine("------\nazwiki");
-		await Azwiki.azwiki();	// yeni madde dz
+		await Azwiki.azwiki();	// new articles
 
 		//kawiki
 		Console.ForegroundColor = ConsoleColor.White;
 		Console.WriteLine("------\nkawiki");
-		await Kawiki.kawiki();	// yeni madde dz
+		await Kawiki.kawiki();	// new articles
 
 		Console.ForegroundColor = ConsoleColor.White;
 		Console.WriteLine("Bitti.");
 		Console.ReadKey();
 	}
 
-	//Giriş yapma fonksiyonu. Parola dosyadan çekiliyor.
-	public static void login(ApiEdit editor) {
+    //Login - password from the file
+    //todo: better password management
+    public static void login(ApiEdit editor) {
 		string path, password;
 		if (!makine) path = "D:\\AWB\\password.txt";
 		else path = "C:\\Users\\Administrator\\Desktop\\password.txt";
@@ -71,18 +72,18 @@ public class ToprakBot {
 		try {
 			editor.Login("ToprakBot", password);
 		} catch(Exception ex) { 
-			Console.WriteLine("Login başarısız! Hata: " + ex.Message);
+			Console.WriteLine("Login failed! Error: " + ex.Message);
 			LogException("P01", ex); 
 		}
 	}
 
-	//Son x günde oluşturulan maddeleri API üzerinden alma fonksiyonu. String list olarak çıktı veriyor.
-	public static int songun = 1; //son 1 gün
+	//Retrieves articles created within the last x days. String list output
+	public static int numofDay = 1; //the default is 1 since bot runs daily
 	public static async Task<List<string>> TitleList(string wiki) {
 		List<string> titles = new List<string>();
 		using(HttpClient client = new HttpClient()) {
 			client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
-			for(int i = 0; i < songun; i++) {
+			for(int i = 0; i < numofDay; i++) {
 				string startDate = DateTime.UtcNow.AddDays(-i).ToString("yyyy-MM-dd") + "T00:00:00.000Z";
 				string endDate = DateTime.UtcNow.AddDays(-i-1).ToString("yyyy-MM-dd") + "T00:00:00.000Z";
 				string apiUrl = $"https://{wiki}.org/w/api.php?action=query&formatversion=2&list=recentchanges&rcdir=older&rcend={endDate}&rclimit=max&rcnamespace=0&rcprop=title&rcstart={startDate}&rctype=new&format=json";
@@ -104,8 +105,7 @@ public class ToprakBot {
 		return titles;
 	}
 
-	//User:ToprakBot/Liste sayfasından düzenlenmesi istenen sayfaları çekiyor. (ilk 100)
-	//String list olarak çıktı veriyor.
+	//Retrieves the first 100 pages from the page "User:ToprakBot/Liste" String list output
 	public static Task<List<string>> wikiliste(string wiki) {
 		ApiEdit editor = new ApiEdit("https://" + wiki + ".org/w/");
 		try {
@@ -150,7 +150,7 @@ public class ToprakBot {
 		return Task.FromResult(titles);
 	}
 	
-	//Hatalı koruma şablonuna sahip sayfalar kategorisindeki sayfaları çekiyor. String list olarak çıktı veriyor.
+	//Retrieves pages from the category "pages with incorrect protection templates". String list output
 	public static async Task<List<string>> korumalist(string wiki) {
 		List<string> titles = new List<string>();
 		string apiUrl = "https://" + wiki + ".org/w/api.php?action=query&format=json&list=categorymembers&formatversion=2&cmtitle=Kategori:Hatalı koruma şablonuna sahip sayfalar&cmprop=title&cmlimit=max";
@@ -167,7 +167,7 @@ public class ToprakBot {
 		return titles;
 	}
 
-	//Sayfanın koruma altında olup olmadığını kontrol ediyor. bool çıktısı veriyor
+	//Checks if the page is protected. bool output
 	public static async Task<bool> GetProtectionStatus(string title, string wiki) {
 		string apiUrl = "https://" + wiki + ".org/w/api.php?action=query&format=json&prop=info&titles="+title+"&formatversion=2&inprop=protection";
 		try {
@@ -182,10 +182,10 @@ public class ToprakBot {
 				else return false;
 			}
 		} catch(Exception ex) { LogException("P06", ex); }
-		return true; //hata durumunda değişiklik yapmaması için true dönüyor
+		return true; //Returns true in case of an error to prevent editing
 	}
 
-	//Title üzerinden sayfanın ad alanını tarıyor
+	//checks the namespace using title. returns its integer value see Special:NamespaceInfo
 	public static async Task<int> NameSpaceDedector(string articleTitle) {
 		if (!articleTitle.Contains(":")) return 0;
 
@@ -205,7 +205,7 @@ public class ToprakBot {
 		return 0;
 	}
 
-    //Hata loglama fonksiyonu 
+    //Error logging method
     public static void LogException(string code, Exception ex) {
 		Trace.WriteLine($"{DateTime.Now} ({code}): Exception: {ex.GetType().FullName}");
 		Trace.WriteLine($"Message: {ex.Message}");

@@ -15,7 +15,7 @@ elif sys.argv[4] == "0":
 	with open("C:\\Users\\Administrator\\Desktop\\password.txt", "r") as file:
 		password = file.read()
 
-USER,PASS = u'ToprakBot@aws', password
+USER,PASS = u'ToprakBot', password
 USER_AGENT='ToprakBot (https://meta.wikimedia.org/wiki/User:ToprakBot; toprak@tprk.tr) Python/3'
 headers = {'User-Agent': USER_AGENT}
 

@@ -11,7 +11,7 @@ using WikiFunctions;
 public class Kawiki {
 	public static ApiEdit editor = new ApiEdit("https://" + ToprakBot.wiki3 + ".org/w/");
 
-	//kawiki de yeni oluşturulan sayfalar burada düzenlenir.
+	//edits pages in kawiki.
 	public static async Task kawiki() {
 		try {
 			ToprakBot.login(editor);
@@ -57,12 +57,12 @@ public class Kawiki {
 			int NameSpace = await ToprakBot.NameSpaceDedector(sayfa);
 			
 			try {
-				ArticleText = editor.Open(sayfa); //içeriği alıyor
+				ArticleText = editor.Open(sayfa); //get content of the page
 			} catch(Exception ex) { ToprakBot.LogException("K02", ex); continue; }
 			madde = ArticleText;
 
 			Regex degistirmemeli = new Regex(@"\{\{\s*?(delete|წასაშლელი)\s*?(\||\}\})", RegexOptions.IgnoreCase);
-			if ((!degistirmemeli.Match(ArticleText).Success)&&(NameSpace == 0)) { //Sadece ana ad alanı, diğer ad alanı kodları için bkz Special:NamespaceInfo
+			if ((!degistirmemeli.Match(ArticleText).Success)&&(NameSpace == 0)) { //make edits in only main namespace.
 				var tuple = kaedit(ArticleText, sayfa);
 				ArticleText = tuple.Item1;
 				ekozet = tuple.Item2;
@@ -87,7 +87,7 @@ public class Kawiki {
 		sw.Close();
 	}
 
-	//Düzenlenecek yeni sayfa buraya düşüyor. Gerekli düzenlemeler yapılıp geri gidiyor.
+	//pages are routed here. Edits are applied and returned.
 	public static Tuple<string, string> kaedit(string ArticleText, string ArticleTitle) {
 		string UneditedArticleText = ArticleText;
 		string summary = "სხვადასხვა სქოლიო შესწორებები";

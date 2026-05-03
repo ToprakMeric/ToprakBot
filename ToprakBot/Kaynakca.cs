@@ -2,9 +2,9 @@
 using System.Text.RegularExpressions;
 
 public class Kaynakca {
-    //Kaynak varsa ancak kaynakça şablonu veya başlığı yoksa ekler
+    //If there are references but no reference list, add a reference list
 
-	//tr
+    //tr
     public static Tuple<string, string> Tr(string ArticleText) {
 		string summary = "";
 

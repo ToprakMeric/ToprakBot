@@ -2,13 +2,13 @@
 using System.Text.RegularExpressions;
 
 public class NotListesi {
-    // Gerekliyse not listesi başlığı ekler
+    // Adds a note list if neccessary
     public static Tuple<string, string> Main(string ArticleText) {
 		string summary = "";
 		Regex şablon = new Regex(@"{{\s*?(efn|adn|adn\-la|adş)\s*?(\||\})", RegexOptions.IgnoreCase);
 		Regex notlistesi = new Regex(@"{{\s*?(not\slistesi|notlar|notes|notelist)\s*?(\||\})", RegexOptions.IgnoreCase);
 		Regex notbaslik = new Regex(@"==\s*(not listesi|notlar|note list|notes|notelist)\s*==", RegexOptions.IgnoreCase);
-		Regex refgroup = new Regex(@"(\<|{{)\s*?(references|ref|kaynakça)\s*?\|?(group|grup)", RegexOptions.IgnoreCase);
+		Regex refgroup = new Regex(@"(\<|{{)\s*?(references|ref|reflist|kaynakça)\s*?\|?(group|grup)", RegexOptions.IgnoreCase);
 	
 		if (şablon.Match(ArticleText).Success) {
 			if (!notlistesi.Match(ArticleText).Success&&!refgroup.Match(ArticleText).Success&&!notbaslik.Match(ArticleText).Success) {

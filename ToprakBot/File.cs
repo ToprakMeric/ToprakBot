@@ -233,7 +233,7 @@ public class ImageTest {
 			try {
 			ProcessStartInfo start = new ProcessStartInfo();
 			if (ToprakBot.makine) start.FileName = "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python314\\python.exe";
-			else start.FileName = "python";
+			else start.FileName = start.FileName = "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python310\\python.exe";
 			start.Arguments = $"{pythonScriptPath} {arguments}";
 			start.UseShellExecute = false;
 			start.RedirectStandardOutput = true;

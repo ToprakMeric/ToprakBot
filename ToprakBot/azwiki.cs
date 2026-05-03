@@ -12,7 +12,7 @@ using WikiFunctions;
 public class Azwiki {
 	public static ApiEdit editor = new ApiEdit("https://" + ToprakBot.wiki2 + ".org/w/");
 
-	//azwiki de yeni oluşturulan sayfalar burada düzenlenir.
+	//edits pages in azwiki.
 	public static async Task azwiki() {
 		
 		try {
@@ -53,19 +53,19 @@ public class Azwiki {
 
 		var türlü = new ToprakBot();
 		int i = -1;
-		foreach(string sayfa in titles) {
+		foreach(string page in titles) {
 			i++;
 			string ArticleText = "", madde = "", ekozet = "";
-			int NameSpace = await ToprakBot.NameSpaceDedector(sayfa);
+			int NameSpace = await ToprakBot.NameSpaceDedector(page);
 			
 			try {
-				ArticleText = editor.Open(sayfa); //içeriği alıyor
-			} catch(Exception ex) { ToprakBot.LogException("A02", ex); }
+				ArticleText = editor.Open(page); //get content of the page
+            } catch(Exception ex) { ToprakBot.LogException("A02", ex); }
 			madde = ArticleText;
 
 			Regex degistirmemeli = new Regex(@"\{\{\s*?(sil|[İi]ş gedir)\s*?(\||\}\})", RegexOptions.IgnoreCase);
-			if ((!degistirmemeli.Match(ArticleText).Success)&&(NameSpace == 0)) { //Sadece ana ad alanı, diğer ad alanı kodları için bkz Special:NamespaceInfo
-				var tuple = azedit(ArticleText, sayfa);
+			if ((!degistirmemeli.Match(ArticleText).Success)&&(NameSpace == 0)) { //make edits in only main namespace.
+				var tuple = azedit(ArticleText, page);
 				ArticleText = tuple.Item1;
 				ekozet = tuple.Item2;
 			}
@@ -76,20 +76,20 @@ public class Azwiki {
 			} else {
 				string summary = "" + ekozet;
 				Console.ForegroundColor = ConsoleColor.Green;
-				loglist.Add(sayfa);
+				loglist.Add(page);
 				
 				try { 
 					editor.Save(ArticleText, summary, true, WatchOptions.NoChange);
 				} catch(Exception ex) { ToprakBot.LogException("A03", ex); }
 			}
-			Console.WriteLine(i+1 + "/" + n + ":\t" + sayfa + "\t");
+			Console.WriteLine(i+1 + "/" + n + ":\t" + page + "\t");
 		}
 
 		foreach(var item in loglist) sw.WriteLine(item);
 		sw.Close();
 	}
 
-	//Düzenlenecek yeni sayfa buraya düşüyor. Gerekli düzenlemeler yapılıp geri gidiyor.
+	//pages are routed here. Edits are applied and returned.
 	public static Tuple<string, string> azedit(string ArticleText, string ArticleTitle) {
 		string summary = "";
 		string UneditedArticleText = ArticleText;
@@ -105,7 +105,7 @@ public class Azwiki {
 		ArticleText = Parsers.TemplateRedirects(ArticleText, WikiRegexes.TemplateRedirects);
 		ArticleText = Parsers.RenameTemplateParameters(ArticleText, WikiRegexes.RenamedTemplateParameters);
 
-		//AWB düzeltmeleri
+		//AWB functions
 		Parsers parser = new Parsers(500, false);
 		ArticleText = Parsers.FixTemperatures(ArticleText);
 		ArticleText = parser.FixBrParagraphs(ArticleText).Trim();
@@ -124,8 +124,8 @@ public class Azwiki {
 		ArticleText = Parsers.SameRefDifferentName(ArticleText);
 		ArticleText = Parsers.RefsAfterPunctuation(ArticleText);
 		ArticleText = Parsers.ReorderReferences(ArticleText);
-		//ArticleText = parser.SortMetaData(ArticleText, ArticleTitle); //defaultshort yapıyor yapmasın
-		//ArticleText = parser.FixNonBreakingSpaces(ArticleText); //AWB bug bkz w.wiki/9p6C
+		//ArticleText = parser.SortMetaData(ArticleText, ArticleTitle); //defaultshort no
+		//ArticleText = parser.FixNonBreakingSpaces(ArticleText); //AWB bug see w.wiki/9p6C
 		//ArticleText = parser.FixDatesA(ArticleText).Trim();
 		//ArticleText = Parsers.FixCitationTemplates(ArticleText);
 		
