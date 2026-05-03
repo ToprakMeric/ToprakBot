@@ -2,10 +2,10 @@
 using System.Text.RegularExpressions;
 
 public class Kaynakca {
-    //If there are references but no reference list, add a reference list
+	//If there are references but no reference list, add a reference list
 
-    //tr
-    public static Tuple<string, string> Tr(string ArticleText) {
+	//tr
+	public static Tuple<string, string> Tr(string ArticleText) {
 		string summary = "";
 
 		Regex reftag = new Regex(@"<\s*?ref.*?>", RegexOptions.Singleline);

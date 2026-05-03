@@ -1,8 +1,8 @@
 ﻿using System.Text.RegularExpressions;
 
 public class KaynakCevir {
-    //Kaynaklardaki tarihleri Türkçeye çevirir. Ayrıca basım bilgisi varsa onu da çevirir.
-    public static string Main(string ArticleText) {
+	//Kaynaklardaki tarihleri Türkçeye çevirir. Ayrıca basım bilgisi varsa onu da çevirir.
+	public static string Main(string ArticleText) {
 		
 		//tarih çevirileri:
 		//January 23, 2021
@@ -132,8 +132,8 @@ public class KaynakCevir {
 		return ArticleText;
 	}
 
-    //İngilizce ay Türkçe çeviriler
-    static string Tercuman(string eskiay) {
+	//İngilizce ay Türkçe çeviriler
+	static string Tercuman(string eskiay) {
 		switch (eskiay.ToLower()) {
 			case "january":
 			   return "Ocak";

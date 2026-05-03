@@ -16,7 +16,7 @@ using System.Diagnostics;
 
 public class ToprakBot {
 	public static bool manual = false; //if false page list retrieved from API, if true from local txt file
-    public static bool makine = false; //sets file paths based on environment true = machine, false = my pc
+	public static bool makine = false; //sets file paths based on environment true = machine, false = my pc
 	public static string wiki = "tr.wikipedia";
 	public static string wiki2 = "az.wikipedia";
 	public static string wiki3 = "ka.wikipedia";
@@ -40,7 +40,7 @@ public class ToprakBot {
 		await Trwiki.trwiki();	// new articles
 		await ImageTest.FairUse();  // fair use image reduce quality
 
-        Console.ForegroundColor = ConsoleColor.White;
+		Console.ForegroundColor = ConsoleColor.White;
 		Console.WriteLine("------\ntrwiki 5k");
 		await Trwiki.trwiki5k(); // daily 5k articles to review all articles in a year or so
 		
@@ -59,9 +59,9 @@ public class ToprakBot {
 		Console.ReadKey();
 	}
 
-    //Login - password from the file
-    //todo: better password management
-    public static void login(ApiEdit editor) {
+	//Login - password from the file
+	//todo: better password management
+	public static void login(ApiEdit editor) {
 		string path, password;
 		if (!makine) path = "D:\\AWB\\password.txt";
 		else path = "C:\\Users\\Administrator\\Desktop\\password.txt";
@@ -205,8 +205,8 @@ public class ToprakBot {
 		return 0;
 	}
 
-    //Error logging method
-    public static void LogException(string code, Exception ex) {
+	//Error logging method
+	public static void LogException(string code, Exception ex) {
 		Trace.WriteLine($"{DateTime.Now} ({code}): Exception: {ex.GetType().FullName}");
 		Trace.WriteLine($"Message: {ex.Message}");
 		Trace.WriteLine($"StackTrace: {ex.StackTrace}");

@@ -27,7 +27,7 @@ public class Baslik {
 	private static readonly TextInfo textInfoTr = cultureTr.TextInfo;
 	private static readonly TextInfo textInfoEn = cultureEn.TextInfo;
 
-    public static string Main(string ArticleText) {
+	public static string Main(string ArticleText) {
 		List<string> sablonlar = Parsers.GetAllTemplateDetail(ArticleText);
 		
 		
@@ -46,8 +46,8 @@ public class Baslik {
 		return ArticleText;
 	}
 
-    //If the title consists only of uppercase letters and contains no lowercase letters, convert it to title case
-    public static string Hallet(string baslik) {
+	//If the title consists only of uppercase letters and contains no lowercase letters, convert it to title case
+	public static string Hallet(string baslik) {
 		if (string.IsNullOrWhiteSpace(baslik)) return baslik;
 
 		Regex buyukharf = new Regex(@"^[\p{Lu}\W\d]+$");
@@ -61,7 +61,7 @@ public class Baslik {
 
 			if (kelime.Length < 3) return baslik; //title shorter than three words, skip
 
-            MatchCollection matchCollection = Regex.Matches(baslik, "[^a-zA-Z\\p{L}]+");
+			MatchCollection matchCollection = Regex.Matches(baslik, "[^a-zA-Z\\p{L}]+");
 			int ü = 0;
 			foreach (Match match in matchCollection) {
 				ayiricilar[ü] = match.Value;
@@ -78,7 +78,7 @@ public class Baslik {
 
 			for (int k = 0; k < kelime.Length; k++) {
 				if (rusca.Match(kelime[k]).Success || yunan.Match(kelime[k]).Success) return baslik; //Russian or Greek characters, skip
-                if (enuzun < kelime[k].Length) enuzun = kelime[k].Length;
+				if (enuzun < kelime[k].Length) enuzun = kelime[k].Length;
 				if (turkceHarfRegex.IsMatch(kelime[k])) {
 					if (lang != "en") lang = "tr";
 					else lang = "belirsiz";
@@ -87,19 +87,19 @@ public class Baslik {
 					else lang = "belirsiz";
 				}
 				if (lang == "belirsiz") return baslik; //Turkish and English characters mixed, skip
-            }
+			}
 			if (lang == "") lang = "enx"; //Undecidable, default to English
 
-            if (enuzun <= 3) return baslik; //longest word is three characters or less, likely an acronym, skip
+			if (enuzun <= 3) return baslik; //longest word is three characters or less, likely an acronym, skip
 
-            baslik = "";
+			baslik = "";
 			TextInfo currentTextInfo = (lang == "tr") ? textInfoTr : textInfoEn;
 
 			for (int i = 0; i < kelime.Length; i++) {
 				string word = kelime[i];
 				if (string.IsNullOrEmpty(word)) continue;
 				if (roma.Match(word).Success) modifiedWords[i] = word; //save Roman numerals
-                else if (word == "ST"||word == "ND"||word == "RD"||word=="TH") modifiedWords[i] = currentTextInfo.ToLower(word);
+				else if (word == "ST"||word == "ND"||word == "RD"||word=="TH") modifiedWords[i] = currentTextInfo.ToLower(word);
 				else {
 					string lowerWord = currentTextInfo.ToLower(word);
 					modifiedWords[i] = currentTextInfo.ToUpper(lowerWord[0]) + lowerWord.Substring(1);
@@ -113,15 +113,15 @@ public class Baslik {
 		return baslik;
 	}
 
-    //Exception words
-    public static string Cevirmen(string word, string lang) {
-        if(lang=="en"||lang=="enx") {
+	//Exception words
+	public static string Cevirmen(string word, string lang) {
+		if(lang=="en"||lang=="enx") {
 			if (englishExceptions.Contains(word))
-                return textInfoEn.ToLower(word);
+				return textInfoEn.ToLower(word);
 		}
 		if (lang=="tr"||lang=="enx") {
 			if (turkishExceptions.Contains(word))
-                return textInfoTr.ToLower(word);
+				return textInfoTr.ToLower(word);
 		}
 		return word;
 	}

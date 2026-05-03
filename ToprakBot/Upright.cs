@@ -42,9 +42,9 @@ public class Upright {
 		return (float)imageWidth/imageHeight;
 	}
 
-    /// Scans the text for image thumbnails that specify explicit pixel dimensions
-    /// and converts them into |upright= value by dividing the used width by 220
-    public static string Main(string ArticleText) {
+	/// Scans the text for image thumbnails that specify explicit pixel dimensions
+	/// and converts them into |upright= value by dividing the used width by 220
+	public static string Main(string ArticleText) {
 		Regex thumb = new Regex(@"\[\[\s*?(Dosya|Resim|File|Image)\:\s*?.*?\s*?\|\s*?(thumb|küçükresim)\s*?.*?\]\]", RegexOptions.IgnoreCase);
 		Regex pixel = new Regex(@"\|\s*?(\d{0,4})(x(\d{1,4})|)\s*?(pik|px)", RegexOptions.IgnoreCase);
 		Regex removeZero = new Regex(@"(\d)(\.00|(\.\d)0)");

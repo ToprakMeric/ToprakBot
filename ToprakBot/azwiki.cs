@@ -60,7 +60,7 @@ public class Azwiki {
 			
 			try {
 				ArticleText = editor.Open(page); //get content of the page
-            } catch(Exception ex) { ToprakBot.LogException("A02", ex); }
+			} catch(Exception ex) { ToprakBot.LogException("A02", ex); }
 			madde = ArticleText;
 
 			Regex degistirmemeli = new Regex(@"\{\{\s*?(sil|[İi]ş gedir)\s*?(\||\}\})", RegexOptions.IgnoreCase);

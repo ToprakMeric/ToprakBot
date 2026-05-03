@@ -3,9 +3,9 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 
 public class YalinURL {
-    //Inserts bare URL cleanup templates
+	//Inserts bare URL cleanup templates
 	//todo: ayın kategorisi yoksa oluştur, boşsa sil
-    public static Tuple<string, string> Main(string ArticleText) {
+	public static Tuple<string, string> Main(string ArticleText) {
 		string summary = "";
 		int bos = 0;
 

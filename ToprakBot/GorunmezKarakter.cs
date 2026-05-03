@@ -3,18 +3,18 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 public class GorunmezKarakter {
-    //Makes invisible characters visible and removes unnecessary invisible characters.
-    public static Tuple<string, string> Main(string ArticleText, string ArticleTitle, string lang) {
+	//Makes invisible characters visible and removes unnecessary invisible characters.
+	public static Tuple<string, string> Main(string ArticleText, string ArticleTitle, string lang) {
 		string summary = "";
 
 		List<string> chars = new List<string>();
 		List<string> unnecessary = new List<string>();
 
 		Regex arabic = new Regex(@"[\u0621-\u064A]"); //Arabic dedector
-        Regex hebrew = new Regex(@"[\u0590-\u05FF]"); //Hebrew dedector
+		Regex hebrew = new Regex(@"[\u0590-\u05FF]"); //Hebrew dedector
 
-        //lüzumsuz karakter kaldırıcı
-        Regex lefttoright = new Regex(@"(\u200E)"); //left-to-rigt
+		//lüzumsuz karakter kaldırıcı
+		Regex lefttoright = new Regex(@"(\u200E)"); //left-to-rigt
 		Regex righttoleft = new Regex(@"(\u200F)"); //rigt-to-left
 
 		if (!(arabic.Match(ArticleText).Success||hebrew.Match(ArticleText).Success)) {
@@ -42,17 +42,17 @@ public class GorunmezKarakter {
 
 		Regex unnecessary3 = new Regex(@"(\u00a0(\s)){1,}");
 		if (unnecessary3.Match(ArticleText).Success) { //Series of a non-breaking space/space
-            ArticleText = unnecessary3.Replace(ArticleText, "$2");
+			ArticleText = unnecessary3.Replace(ArticleText, "$2");
 			nonbreaking = true;
 		}
 
 		Regex unnecessary4 = new Regex(@"(\={2,4})(.*?\u00a0.*?)(\={2,4})");
 		if (unnecessary4.Match(ArticleText).Success) { //Non-breaking space in titles
-            bool bittimi = false;
+			bool bittimi = false;
 			while(bittimi==false) {
 				var cikar = unnecessary4.Match(ArticleText);
 				if(unnecessary4.Match(ArticleText).Success) { //First char non-breaking space
-                    var baslik = cikar.Groups[2].Value;
+					var baslik = cikar.Groups[2].Value;
 					baslik = baslik.Replace(" ", " ");
 					ArticleText = unnecessary4.Replace(ArticleText, "$1"+baslik+"$3", 1);
 				} else bittimi = true;
@@ -89,10 +89,10 @@ public class GorunmezKarakter {
 			}
 		}
 
-        //character replacer
-        Regex finder1 = new Regex(@"(\u00a0)");
+		//character replacer
+		Regex finder1 = new Regex(@"(\u00a0)");
 		if (finder1.Match(ArticleText).Success) { //Non-breaking space
-            ArticleText = finder1.Replace(ArticleText, "&nbsp;");
+			ArticleText = finder1.Replace(ArticleText, "&nbsp;");
 			chars.Add("[[Ayrılmaz alan|kırılmaz boşluk]] (U+00A0)");
 		}
 
@@ -162,8 +162,8 @@ public class GorunmezKarakter {
 			chars.Add("[[en:Soft hyphen|Soft hyphen]] (U+00AD)");
 		}
 
-        //edit summary
-        string str = string.Empty;
+		//edit summary
+		string str = string.Empty;
 		foreach(var item in chars) str = str + item + ", ";
 
 		string str2 = string.Empty;
