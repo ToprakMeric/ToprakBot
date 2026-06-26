@@ -109,5 +109,5 @@ Requires `password.txt` (bot credentials) and optionally `liste.txt` (manual pag
 ## Contact
 
 - **Author**: ToprakM
-- **Email**: toprak@tprk.tr
+- **Email**: toprak at tprk.tr
 - **Meta page**: [meta.wikimedia.org/wiki/User:ToprakBot](https://meta.wikimedia.org/wiki/User:ToprakBot)
