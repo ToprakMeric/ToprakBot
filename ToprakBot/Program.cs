@@ -23,7 +23,7 @@ public class ToprakBot {
 
 	public const string userAgent = "ToprakBot/1.7 (https://meta.wikimedia.org/wiki/User:ToprakBot; toprak@tprk.tr) C#/.NET";
 
-	// Entry: Execution starts here.
+	// Entry: Execution starts here
 	public static async Task Main(string[] args) {
 
 		//log listener
@@ -40,10 +40,13 @@ public class ToprakBot {
 		await Trwiki.trwiki();	// new articles
 		await ImageTest.FairUse();  // fair use image reduce quality
 
+
 		Console.ForegroundColor = ConsoleColor.White;
 		Console.WriteLine("------\ntrwiki 5k");
 		await Trwiki.trwiki5k(); // daily 5k articles to review all articles in a year or so
-		
+		Console.WriteLine("------\ntrwiki fair use template");
+		await Trwiki.fairusetemp();
+
 		//azwiki
 		Console.ForegroundColor = ConsoleColor.White;
 		Console.WriteLine("------\nazwiki");
@@ -149,22 +152,96 @@ public class ToprakBot {
 
 		return Task.FromResult(titles);
 	}
-	
-	//Retrieves pages from the category "pages with incorrect protection templates". String list output
-	public static async Task<List<string>> korumalist(string wiki) {
+
+	// Retrieves a specified number of pages from a given category. String list output.
+	public static async Task<List<string>> CategoryList(string wiki, string categoryName, int pageCount) {
 		List<string> titles = new List<string>();
-		string apiUrl = "https://" + wiki + ".org/w/api.php?action=query&format=json&list=categorymembers&formatversion=2&cmtitle=Kategori:Hatalı koruma şablonuna sahip sayfalar&cmprop=title&cmlimit=max";
+		
+		string formattedCategory = categoryName.StartsWith("Kategori:", StringComparison.OrdinalIgnoreCase) || 
+								   categoryName.StartsWith("Category:", StringComparison.OrdinalIgnoreCase) 
+								   ? categoryName 
+								   : $"Category:{categoryName}";
+
+		string apiUrl = $"https://{wiki}.org/w/api.php?action=query&format=json&list=categorymembers&cmtitle={Uri.EscapeDataString(formattedCategory)}&cmlimit={pageCount}&formatversion=2";
+		
 		try {
-			using (var client = new WebClient()) {
-				client.Encoding = Encoding.UTF8;
-				client.Headers.Add(HttpRequestHeader.UserAgent, userAgent);
-				string jsonContent = await client.DownloadStringTaskAsync(apiUrl);
+			using(var client = new HttpClient()) {
+				client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
+				HttpResponseMessage response = await client.GetAsync(apiUrl);
+				response.EnsureSuccessStatusCode();
 				
-				dynamic data = JsonConvert.DeserializeObject(jsonContent);
-				foreach (var item in data.query.categorymembers) titles.Add(item.title.ToString());
+				string json = await response.Content.ReadAsStringAsync();
+				var jsonObject = JsonConvert.DeserializeObject<JObject>(json);
+				var categoryMembers = jsonObject["query"]?["categorymembers"];
+
+				if(categoryMembers != null) {
+					foreach(var member in categoryMembers) {
+						string title = member["title"]?.ToString();
+						if(!string.IsNullOrEmpty(title)) titles.Add(title);
+					}
+				}
 			}
-		} catch(Exception ex) { LogException("P05", ex); }
+		} catch(Exception ex) { LogException("P08", ex); }
+		
 		return titles;
+	}
+
+	// Finds all categories on the page and moves them to the end.
+	public static string MoveCategoriesToEnd(string articleText) {
+		string categoryPattern = @"\[\[\s*(Kategori|Category)\s*:.*?\]\]";
+		Regex categoryRegex = new Regex(categoryPattern, RegexOptions.IgnoreCase);
+
+		MatchCollection allMatches = categoryRegex.Matches(articleText);
+		if (allMatches.Count == 0) return articleText;
+
+		List<Match> validMatches = new List<Match>();
+		List<string> categoryStrings = new List<string>();
+
+		// Step 1: determine which to remove
+		foreach (Match match in allMatches) {
+
+			int lineStart = articleText.LastIndexOf('\n', match.Index) + 1;
+			int lineEnd = articleText.IndexOf('\n', match.Index);
+			if (lineEnd == -1) lineEnd = articleText.Length;
+			string currentLine = articleText.Substring(lineStart, lineEnd - lineStart);
+
+			// skip if contains {{#if:, {{#switch:) etc
+			if (currentLine.Contains("{{#")) continue;
+
+			validMatches.Add(match);
+			categoryStrings.Add(match.Value);
+		}
+
+		if (validMatches.Count == 0) return articleText;
+
+		// Step 2: check location
+		string tail = articleText.Substring(validMatches[0].Index);
+		string tempTail = tail;
+		foreach (string cat in categoryStrings) {
+			var regexCat = new Regex(Regex.Escape(cat), RegexOptions.IgnoreCase);
+			tempTail = regexCat.Replace(tempTail, "", 1);
+		}
+
+		if (string.IsNullOrWhiteSpace(tempTail)) {
+			return articleText;
+		}
+
+		// Step 3: Relocate the categories
+		string newText = categoryRegex.Replace(articleText, match => {
+			int lineStart = articleText.LastIndexOf('\n', match.Index) + 1;
+			int lineEnd = articleText.IndexOf('\n', match.Index);
+			if (lineEnd == -1) lineEnd = articleText.Length;
+			string currentLine = articleText.Substring(lineStart, lineEnd - lineStart);
+
+			if (currentLine.Contains("{{#")) return match.Value; 
+			
+			return ""; 
+		});
+
+		newText = Regex.Replace(newText, @"\n{3,}", "\n\n").TrimEnd();
+		newText += "\n\n" + string.Join("\n", categoryStrings);
+
+		return newText;
 	}
 
 	//Checks if the page is protected. bool output

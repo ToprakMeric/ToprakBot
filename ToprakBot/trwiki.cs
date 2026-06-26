@@ -31,7 +31,7 @@ public class Trwiki {
 				while((line=reader.ReadLine())!=null) titles.Add(line);
 			}
 		}
-		List<string> hatalıkorumaşablist = await ToprakBot.korumalist(ToprakBot.wiki);
+		List<string> hatalıkorumaşablist = await ToprakBot.CategoryList(ToprakBot.wiki, "Hatalı koruma şablonuna sahip sayfalar", 5000);
 		if (!ToprakBot.manual) titles.AddRange(hatalıkorumaşablist);
 
 		List<string> wikiliste = await ToprakBot.wikiliste(ToprakBot.wiki);
@@ -314,5 +314,69 @@ public class Trwiki {
 		}
 		
 		return new Tuple<string, string>(ArticleText, summary);
+	}
+
+	// eski adil kullanım tablolarını {{Adil kullanım gerekçesi}} şablonuna çevirir.
+	public static async Task fairusetemp() {
+		try {
+			ToprakBot.login(editor);
+		} catch(Exception ex) { ToprakBot.LogException("T07", ex); }
+		
+		List<string> titles = await ToprakBot.CategoryList(ToprakBot.wiki, "Makine sistemi tarafından okunabilir kaynağa sahip olmayan dosyalar", 100);
+		titles = titles.Distinct().ToList();
+		int n = titles.Count;
+
+		DateTime bugun = DateTime.Today;
+		string bugunformat = bugun.ToString("yyyy-MM-dd");
+		string filePath;
+		if (!ToprakBot.makine) filePath = @"D:\AWB\log\tr\" + bugunformat + ".txt";
+		else filePath = @"C:\Users\Administrator\Desktop\log\tr\" + bugunformat + ".txt";
+		StreamWriter sw = File.AppendText(filePath);
+
+		var loglist = new List<string>();
+
+		string pattern = @"==[\'[\n]*\[\[(.*?)\]\].*?==.*?Açıklama.*?\|\n*(.*?)\n*\|-.*?Kaynak.*?\|\n*(.*?)\n*\|-.*?Kullanılan miktar.*?\|\n*(.*?)\n*\|-.*?Düşük çözünürlük.*?\|\n*(.*?)\n*\|-.*?Değiştirilebilirlik.*?\|\n*(.*?)\n*\|-.*?Vikipedi kurallarına uyum.*?\|\n*(.*?)\n*\|\}";
+		string replacement = "{{Adil kullanım gerekçesi\n| Madde			   = $1\n| Açıklama			= $2\n| Kaynak			  = $3\n| Kısım			   = $4\n| Düşük çözünürlük	= $5\n| Amaç				= \n| Değiştirilebilirlik = $6\n| Ek bilgi			= $7\n}}";
+		
+		Regex fairUseRegex = new Regex(pattern, RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+		int i = -1;
+		foreach(string sayfa in titles) {
+			i++;
+			string ArticleText = "", madde = "";
+
+			try {
+				ArticleText = editor.Open(sayfa); // Sayfa içeriğini alıyor
+				madde = ArticleText;
+			} catch(Exception ex) { ToprakBot.LogException("T08", ex); continue; }
+
+			if (fairUseRegex.Match(ArticleText).Success) {
+				ArticleText = fairUseRegex.Replace(ArticleText, replacement);
+
+				//düzen
+				ArticleText = Regex.Replace(ArticleText, @"\| (Madde|Açıklama|Kaynak|Kısım|Düşük çözünürlük|Amaç|Değiştirilebilirlik|Ek bilgi)\s*\=\s*([^\|])", "| $1 = $2", RegexOptions.Singleline);
+				ArticleText = Regex.Replace(ArticleText, @"\}\}\s*==\s*(?:Lisans|Lisanslama)\s*==", "}}\n\n== Lisanslama ==", RegexOptions.Singleline);
+			
+				//kategoriler en sona
+				ArticleText = ToprakBot.MoveCategoriesToEnd(ArticleText);
+			}
+
+			if (ArticleText == madde) Console.ForegroundColor = ConsoleColor.Red;
+			else {
+				string summary = "Eski adil kullanım tablosu şablona dönüştürüldü";
+				Console.ForegroundColor = ConsoleColor.Green;
+				loglist.Add(sayfa);
+				try {
+					editor.Save(ArticleText, summary, false, WatchOptions.NoChange);
+				} catch(Exception ex) { ToprakBot.LogException("T09", ex); continue; }
+			}
+			
+			Console.WriteLine(i+1 + "/" + n + ":\t" + sayfa + "\t");
+		}
+
+
+
+		foreach(var item in loglist) sw.WriteLine(item);
+		sw.Close();
 	}
 }
