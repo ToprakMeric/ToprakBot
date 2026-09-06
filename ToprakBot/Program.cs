@@ -16,12 +16,13 @@ using System.Diagnostics;
 
 public class ToprakBot {
 	public static bool manual = false; //if false page list retrieved from API, if true from local txt file
-	public static bool makine = false; //sets file paths based on environment true = machine, false = my pc
+	public static bool makine = true; //sets file paths based on environment true = machine, false = my pc
 	public static string wiki = "tr.wikipedia";
 	public static string wiki2 = "az.wikipedia";
 	public static string wiki3 = "ka.wikipedia";
+	public static string wikt = "tr.wiktionary";
 
-	public const string userAgent = "ToprakBot/1.7 (https://meta.wikimedia.org/wiki/User:ToprakBot; toprak@tprk.tr) C#/.NET";
+	public const string userAgent = "ToprakBot/1.8.beta1 (https://meta.wikimedia.org/wiki/User:ToprakBot; toprak@tprk.tr) C#/.NET";
 
 	// Entry: Execution starts here
 	public static async Task Main(string[] args) {
@@ -40,13 +41,13 @@ public class ToprakBot {
 		await Trwiki.trwiki();	// new articles
 		await ImageTest.FairUse();  // fair use image reduce quality
 
-
 		Console.ForegroundColor = ConsoleColor.White;
 		Console.WriteLine("------\ntrwiki 5k");
 		await Trwiki.trwiki5k(); // daily 5k articles to review all articles in a year or so
-		Console.WriteLine("------\ntrwiki fair use template");
-		await Trwiki.fairusetemp();
-
+		
+		//Console.WriteLine("------\ntrwiki fair use template");
+		//await Trwiki.fairusetemp();
+		
 		//azwiki
 		Console.ForegroundColor = ConsoleColor.White;
 		Console.WriteLine("------\nazwiki");
@@ -56,6 +57,12 @@ public class ToprakBot {
 		Console.ForegroundColor = ConsoleColor.White;
 		Console.WriteLine("------\nkawiki");
 		await Kawiki.kawiki();	// new articles
+		
+		
+		//trwiktionary
+		Console.ForegroundColor = ConsoleColor.White;
+		Console.WriteLine("------\ntrwikt");
+		await Trwikt.trwikt();
 
 		Console.ForegroundColor = ConsoleColor.White;
 		Console.WriteLine("Bitti.");

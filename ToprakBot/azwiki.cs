@@ -94,11 +94,11 @@ public class Azwiki {
 		string summary = "";
 		string UneditedArticleText = ArticleText;
 
-		var tuple = Kaynakca.Az(ArticleText);
+		var tuple = Reflist.Az(ArticleText);
 		ArticleText = tuple.Item1;
 		summary += tuple.Item2;
 		
-		var tuple3 = GorunmezKarakter.Main(ArticleText, ArticleTitle, "az");
+		var tuple3 = InvisibleChar.Main(ArticleText, ArticleTitle, "az");
 		ArticleText = tuple3.Item1;
 		summary += tuple3.Item2;
 
@@ -118,8 +118,8 @@ public class Azwiki {
 		ArticleText = Parsers.FixReferenceListTags(ArticleText);
 		ArticleText = Parsers.FixEmptyLinksAndTemplates(ArticleText);
 		ArticleText = Parsers.SimplifyReferenceTags(ArticleText);
-		ArticleText = Parsers.FixReferenceTags(ArticleText);
-		ArticleText = Parsers.DuplicateNamedReferences(ArticleText);
+		ArticleText = Ref.FixReferenceTags(ArticleText); //edited
+        ArticleText = Parsers.DuplicateNamedReferences(ArticleText);
 		ArticleText = Parsers.DuplicateUnnamedReferences(ArticleText);
 		ArticleText = Parsers.SameRefDifferentName(ArticleText);
 		ArticleText = Parsers.RefsAfterPunctuation(ArticleText);

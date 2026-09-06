@@ -274,16 +274,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="azwiki.cs" />
-    <Compile Include="baslik.cs" />
     <Compile Include="File.cs" />
-    <Compile Include="GorunmezKarakter.cs" />
-    <Compile Include="Kaynakca.cs" />
-    <Compile Include="KaynakCevir.cs" />
+    <Compile Include="InvisibleChar.cs" />
+    <Compile Include="Reflist.cs" />
+    <Compile Include="References.cs" />
     <Compile Include="NotListesi.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="kawiki.cs" />
     <Compile Include="trwiki.cs" />
+    <Compile Include="Trwikt.cs" />
     <Compile Include="Upright.cs" />
     <Compile Include="YalinURL.cs" />
   </ItemGroup>

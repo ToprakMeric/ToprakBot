@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class GorunmezKarakter {
+public class InvisibleChar {
 	//Makes invisible characters visible and removes unnecessary invisible characters.
 	public static Tuple<string, string> Main(string ArticleText, string ArticleTitle, string lang) {
 		string summary = "";

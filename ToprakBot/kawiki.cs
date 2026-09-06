@@ -92,7 +92,7 @@ public class Kawiki {
 		string UneditedArticleText = ArticleText;
 		string summary = "სხვადასხვა სქოლიო შესწორებები";
 
-		var tuple = Kaynakca.Ka(ArticleText);
+		var tuple = Reflist.Ka(ArticleText);
 		ArticleText = tuple.Item1;
 		summary += tuple.Item2;
 
@@ -110,7 +110,7 @@ public class Kawiki {
 			ArticleText = ArticleText.Trim();
 
 			ArticleText = Parsers.SimplifyReferenceTags(ArticleText);
-			ArticleText = Parsers.FixReferenceTags(ArticleText);
+			ArticleText = Ref.FixReferenceTags(ArticleText); //edited
 			ArticleText = Parsers.FixTemperatures(ArticleText);
 			ArticleText = parser.FixBrParagraphs(ArticleText).Trim();
 			ArticleText = Parsers.FixLinkWhitespace(ArticleText, ArticleTitle);

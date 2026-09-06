@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 
-public class Kaynakca {
+public class Reflist {
 	//If there are references but no reference list, add a reference list
 
 	//tr
