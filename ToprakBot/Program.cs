@@ -22,7 +22,7 @@ public class ToprakBot {
 	public static string wiki3 = "ka.wikipedia";
 	public static string wikt = "tr.wiktionary";
 
-	public const string userAgent = "ToprakBot/1.8.beta1 (https://meta.wikimedia.org/wiki/User:ToprakBot; toprak@tprk.tr) C#/.NET";
+	public const string userAgent = "ToprakBot/1.8 (https://meta.wikimedia.org/wiki/User:ToprakBot; toprak@tprk.tr) C#/.NET";
 
 	// Entry: Execution starts here
 	public static async Task Main(string[] args) {
