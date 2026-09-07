@@ -5,10 +5,12 @@
 <p align="center">
   <a href="https://tr.wikipedia.org/wiki/Kullanıcı:ToprakBot"><img src="https://img.shields.io/badge/Wikipedia-Türkçe-blue?logo=wikipedia" alt="trwiki" /></a>
   <a href="https://az.wikipedia.org/wiki/İstifadəçi:ToprakBot"><img src="https://img.shields.io/badge/Wikipedia-Azərbaycanca-green?logo=wikipedia" alt="azwiki" /></a>
-  <a href="https://ka.wikipedia.org/wiki/მომხმარებელი:ToprakBot"><img src="https://img.shields.io/badge/Wikipedia-ქართული-red?logo=wikipedia" alt="kawiki" /></a>
+  <a href="https://ka.wikipedia.org/wiki/მომხმარებელი:ToprakBot"><img src="https://img.shields.io/badge/Wikipedia-ქართული-red?logo=wikipedia" alt="kawiki" /></a><br/>
+   <a href="https://tr.wiktionary.org/wiki/Kullanıcı:ToprakBot"><img src="https://img.shields.io/badge/Wiktionary-Türkçe-blue?logo=wiktionary" alt="trwikt" /></a>
 </p>
 
 ---
+# This document is out of date.
 
 ## What It Does
 
